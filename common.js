@@ -90,12 +90,11 @@ const SJ = (() => {
   const FACES = ['sonrisa', 'carcajada', 'sorpresa', 'picaro', 'serio', 'guino'];
   const ACCS = ['ninguno', 'lentes', 'monoculo', 'bigote', 'barba', 'lentesbigote'];
   const PROPS = ['mazo', 'codigo', 'balanza', 'maletin'];
-  const TITLES = ['Lic.', 'Mtra.', 'Dr.', 'Juez', 'Notario', 'Ministra', 'Abogángster', 'Perito', 'Fiscal', 'Defensor'];
 
   function randomLook(seed) {
     const r = rng(seed);
     const p = a => a[Math.floor(r() * a.length)];
-    return { skin: p(SKINS), bg: p(BGS), face: p(FACES), acc: p(ACCS), prop: p(PROPS), title: p(TITLES), hat: 'birrete' };
+    return { skin: p(SKINS), bg: p(BGS), face: p(FACES), acc: p(ACCS), prop: p(PROPS), hat: 'birrete' };
   }
 
   function hatSVG(h) {
@@ -189,6 +188,73 @@ const SJ = (() => {
     win() { [523, 659, 784, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i * 0.11, 0.3, 'square', 0.09)); }
   };
 
+  /* ---------- música chiptune (melodías de dominio público usadas en videojuegos) ---------- */
+  const NOTE = { C: 0, 'C#': 1, D: 2, 'D#': 3, E: 4, F: 5, 'F#': 6, G: 7, 'G#': 8, A: 9, 'A#': 10, B: 11 };
+  function nf(n) { if (n === 'r') return 0; const m = n.match(/^([A-G]#?)(\d)$/); return 440 * Math.pow(2, (NOTE[m[1]] + (+m[2] + 1) * 12 - 69) / 12); }
+  const P = s => s.trim().split(/\s+/).map(t => { const [n, d] = t.split(':'); return [n, +d]; });
+  const up = (seq, oct) => seq.map(([n, d]) => [n === 'r' ? n : n.replace(/\d$/, x => +x + oct), d]);
+  function bassBars(roots, pat) { // pat: 'oct' = raíz/octava en corcheas, 'gallop' = raíz/quinta, 'march' = negras
+    const out = [];
+    roots.forEach(r => {
+      const lo = r + '2', hi = r + '3';
+      if (pat === 'march') for (let i = 0; i < 4; i++) out.push([i % 2 ? hi : lo, 1]);
+      else for (let i = 0; i < 8; i++) out.push([i % 2 ? hi : lo, .5]);
+    });
+    return out;
+  }
+  const korA = P('E5:1 B4:.5 C5:.5 D5:1 C5:.5 B4:.5 A4:1 A4:.5 C5:.5 E5:1 D5:.5 C5:.5 B4:1.5 C5:.5 D5:1 E5:1 C5:1 A4:1 A4:2');
+  const korB = P('r:.5 D5:1 F5:.5 A5:1 G5:.5 F5:.5 E5:1.5 C5:.5 E5:1 D5:.5 C5:.5 B4:1 B4:.5 C5:.5 D5:1 E5:1 C5:1 A4:1 A4:2');
+  const mk1 = P('B3:.5 C#4:.5 D4:.5 E4:.5 F#4:.5 D4:.5 F#4:1 F4:.5 C#4:.5 F4:1 E4:.5 C4:.5 E4:1 B3:.5 C#4:.5 D4:.5 E4:.5 F#4:.5 D4:.5 F#4:.5 B4:.5 A4:.5 F#4:.5 D4:.5 F#4:.5 A4:2');
+  const gal = 'G4:.25 G4:.25 G4:.5 G4:.25 G4:.25 G4:.5 G4:.25 G4:.25 C5:.5';
+  const wt = P(`${gal} D5:.5 E5:.5 ${gal} E5:.5 D5:.5 ${gal} D5:.5 E5:.5 C5:.5 E5:.5 G5:1 E5:.5 C5:.5 G4:1`);
+  const TRACKS = {
+    korobeiniki: { name: 'Korobeiniki (duelo)', bpm: 150, lead: [...korA, ...korA, ...korB, ...korB], bass: bassBars(['E', 'A', 'E', 'A', 'E', 'A', 'E', 'A', 'D', 'C', 'E', 'A', 'D', 'C', 'E', 'A'], 'oct') },
+    montana: { name: 'Rey de la Montaña (tensión)', bpm: 120, accel: true, lead: [...mk1, ...up(mk1, 1)], bass: bassBars(['B', 'F#', 'B', 'D', 'B', 'F#', 'B', 'D'], 'march') },
+    galope: { name: 'Galope final (carrera)', bpm: 152, lead: [...wt, ...up(wt, 0)], bass: bassBars(['C', 'G', 'C', 'C', 'C', 'G', 'C', 'C'], 'gallop') }
+  };
+  const music = { on: false, track: null, mul: 1, loopMul: 1, timer: null, master: null, duck: 1 };
+  function noiseBuf(c) { if (music.nb) return music.nb; const b = c.createBuffer(1, c.sampleRate * .2, c.sampleRate); const d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return (music.nb = b); }
+  function mnote(c, f, t, dur, type, vol) {
+    if (!f) return;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur * .92);
+    o.connect(g); g.connect(music.master); o.start(t); o.stop(t + dur);
+  }
+  function hat(c, t, vol) { const s = c.createBufferSource(), g = c.createGain(), f = c.createBiquadFilter(); s.buffer = noiseBuf(c); f.type = 'highpass'; f.frequency.value = 7000; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + .05); s.connect(f); f.connect(g); g.connect(music.master); s.start(t); s.stop(t + .06); }
+  function kick(c, t) { const o = c.createOscillator(), g = c.createGain(); o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(40, t + .12); g.gain.setValueAtTime(.5, t); g.gain.exponentialRampToValueAtTime(0.0001, t + .15); o.connect(g); g.connect(music.master); o.start(t); o.stop(t + .16); }
+  function schedule() {
+    const c = ctx(); if (!c || !music.track) return;
+    const T = music.track, spb = () => 60 / (T.bpm * music.mul * music.loopMul);
+    const st = music.st;
+    while (st.lt < c.currentTime + .15) {
+      if (st.li >= T.lead.length) { st.li = 0; if (T.accel) music.loopMul = music.loopMul > 1.5 ? 1 : music.loopMul * 1.1; }
+      const [n, d] = T.lead[st.li++]; const dur = d * spb();
+      mnote(c, nf(n), st.lt, dur, 'square', .07); st.lt += dur;
+    }
+    while (st.bt < c.currentTime + .15) {
+      if (st.bi >= T.bass.length) st.bi = 0;
+      const [n, d] = T.bass[st.bi++]; const dur = d * spb();
+      mnote(c, nf(n), st.bt, dur, 'triangle', .16); st.bt += dur;
+    }
+    while (st.dt < c.currentTime + .15) {
+      const half = spb() / 2;
+      hat(c, st.dt, st.di % 2 ? .05 : .08); if (st.di % 2 === 0) kick(c, st.dt);
+      st.dt += half; st.di++;
+    }
+  }
+  function musicPlay(id) {
+    const c = ctx(); if (!c) return;
+    musicStop();
+    if (!music.master) { music.master = c.createGain(); music.master.connect(c.destination); }
+    music.master.gain.value = .55 * music.duck;
+    music.track = TRACKS[id] || TRACKS.korobeiniki; music.id = id; music.loopMul = 1; music.on = true;
+    const t = c.currentTime + .05; music.st = { li: 0, bi: 0, lt: t, bt: t, dt: t, di: 0 };
+    music.timer = setInterval(schedule, 25);
+  }
+  function musicStop() { clearInterval(music.timer); music.timer = null; music.on = false; }
+  function setDuck(v) { music.duck = v; if (music.master) try { music.master.gain.setTargetAtTime(.55 * v, ctx().currentTime, .08); } catch (e) {} }
+
   let voice = null;
   function pickVoice() {
     try {
@@ -197,16 +263,39 @@ const SJ = (() => {
     } catch (e) {}
   }
   try { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; } catch (e) {}
-  function say(text, mood = 'happy') {
+  let gen = 0;
+  function say(text, mood = 'happy', fromQ) {
     try {
+      if (!fromQ) sq.length = 0;
+      const my = ++gen;
       speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
       if (voice) u.voice = voice;
       u.lang = voice ? voice.lang : 'es-MX';
       const m = { happy: [1.45, 1.15], hype: [1.7, 1.25], sad: [0.7, 0.85], calm: [1.1, 1] }[mood] || [1.2, 1.05];
       u.pitch = m[0]; u.rate = m[1]; u.volume = 1;
+      u.onstart = () => setDuck(.35);
+      u.onend = u.onerror = () => { if (my !== gen) return; setDuck(1); speaking = false; setTimeout(nextSay, 250); };
+      speaking = true;
       speechSynthesis.speak(u);
-    } catch (e) {}
+      setTimeout(() => { if (my === gen && speaking) { speaking = false; setDuck(1); nextSay(); } }, 1500 + text.length * 110);
+    } catch (e) { speaking = false; }
+  }
+  /* cola de voz: prioridad alta interrumpe, baja se descarta si hay fila */
+  let speaking = false; const sq = [];
+  function sayQ(text, mood, prio = 1) {
+    if (prio >= 3) { say(text, mood); return; }
+    if (sq.length >= 2 && prio < 2) return;
+    sq.push([text, mood]);
+    if (!speaking) nextSay();
+  }
+  function nextSay() { if (speaking) return; const n = sq.shift(); if (n) say(n[0], n[1], true); }
+
+  /* ---------- ranking ---------- */
+  function rank(list) {
+    return [...list].sort((a, b) =>
+      (!!b.done - !!a.done) || (a.done && b.done ? a.time - b.time : 0) ||
+      (b.found - a.found) || ((a.lf || a.ts) - (b.lf || b.ts)));
   }
 
   /* ---------- tiempo real (MQTT) ---------- */
@@ -236,5 +325,5 @@ const SJ = (() => {
     return u.href.replace(/index\.html(?=$|\?)/, '');
   }
 
-  return { BASE, SALA, DEFAULT_WORDS, store, rng, normWord, buildPuzzle, HATS, SKINS, BGS, FACES, ACCS, PROPS, randomLook, avatarSVG, sfx, say, connect, esc, gameURL, params };
+  return { BASE, SALA, DEFAULT_WORDS, store, rng, normWord, buildPuzzle, HATS, SKINS, BGS, FACES, ACCS, PROPS, randomLook, avatarSVG, sfx, say, sayQ, rank, TRACKS, music, musicPlay, musicStop, connect, esc, gameURL, params };
 })();

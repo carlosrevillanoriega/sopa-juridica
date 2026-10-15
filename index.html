@@ -16,7 +16,7 @@
 #login h1{font-size:2.2rem;text-align:center;line-height:1.05}
 #login .sub{color:var(--muted);text-align:center;margin-top:-6px}
 .preview{position:relative;animation:bob 2.4s ease-in-out infinite}
-.preview .badge{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);background:var(--card2);border:2px solid var(--line);padding:.15rem .7rem;border-radius:999px;font-size:.85rem;white-space:nowrap}
+.preview .badge{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);background:var(--card2);border:2px solid var(--line);padding:.15rem .7rem;border-radius:999px;font-size:.85rem;max-width:80vw;width:max-content;text-align:center;overflow-wrap:anywhere}
 .field{width:100%;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:.9rem 1.1rem;color:var(--txt);font-size:1.2rem;outline:none;text-align:center}
 .field:focus{border-color:var(--lila)}
 .label{align-self:flex-start;color:var(--lila);font-weight:600;font-size:.95rem}
@@ -54,14 +54,25 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:40}
 .fcard h2{font-size:2rem;margin:8px 0}
 .fcard p{color:var(--muted)}
 .net{position:fixed;bottom:8px;right:8px;z-index:30}
+.top .nick{white-space:normal;overflow-wrap:anywhere;line-height:1.1;font-size:.95rem}
+.side{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.rankp{font-size:.8rem;font-weight:700;color:var(--oro)}
+.ib{width:38px;height:38px;border-radius:50%;background:var(--card2);color:var(--lila2);font-size:1.2rem;flex:none}
+.ib.on{background:var(--morado);color:#fff;box-shadow:0 0 12px var(--morado)}
+.ticker{width:100%;min-height:26px;text-align:center;font-weight:600;color:var(--oro);font-size:1rem;transition:opacity .4s}
+.ticker.show{animation:pop .5s}
+#resetBox{position:fixed;inset:0;background:rgba(26,11,46,.88);display:none;align-items:center;justify-content:center;z-index:70;padding:16px;backdrop-filter:blur(4px)}
+#resetBox.on{display:flex}
+.board.onfire{box-shadow:inset 0 0 0 3px #FB923C,0 0 25px #F97316,0 0 60px rgba(239,68,68,.6);animation:fireGlow .35s infinite alternate}
+@keyframes fireGlow{from{box-shadow:inset 0 0 0 3px #FB923C,0 0 20px #F97316,0 -10px 50px rgba(239,68,68,.5)}to{box-shadow:inset 0 0 0 3px #FDE047,0 0 35px #FB923C,0 -18px 70px rgba(239,68,68,.75)}}
 </style>
 </head>
 <body>
 <section id="login" class="screen on">
   <h1 class="title">Sopa Jurídica</h1>
   <p class="sub">Elige tu sombrero, ponte un apodo y a buscar.</p>
-  <div class="preview"><div id="pv"></div><div class="badge" id="pvTitle">Lic.</div></div>
-  <input id="nick" class="field" maxlength="16" placeholder="Tu nickname" autocomplete="off">
+  <div class="preview"><div id="pv"></div><div class="badge" id="pvTitle">???</div></div>
+  <input id="nick" class="field" maxlength="50" placeholder="Tu nickname" autocomplete="off">
   <div class="label">Tu sombrero</div>
   <div class="hats" id="hats"></div>
   <div class="row">
@@ -74,8 +85,11 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:40}
   <div class="top">
     <div id="meAv"></div>
     <div class="who"><div class="nick" id="meNick"></div><div class="bar"><i id="prog"></i></div></div>
-    <div class="clock" id="clock">0:00</div>
+    <div class="side"><div class="clock" id="clock">0:00</div><div class="rankp" id="rankp"></div></div>
+    <button class="ib" id="musBtn" title="Música">&#9835;</button>
+    <button class="ib" id="rstBtn" title="Reiniciar">&#8635;</button>
   </div>
+  <div class="ticker" id="ticker"></div>
   <div class="board" id="board"><div class="grid" id="grid"></div></div>
   <div class="words" id="words"></div>
 </section>
@@ -84,7 +98,16 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:40}
   <div id="finAv"></div>
   <h2 class="title">¡Caso cerrado!</h2>
   <p id="finTxt"></p>
-  <button class="btn" style="margin-top:16px" onclick="document.getElementById('finish').classList.remove('on')">Ver mi sopa</button>
+  <div class="row" style="margin-top:16px"><button class="btn ghost" onclick="document.getElementById('finish').classList.remove('on')">Ver mi sopa</button><button class="btn" onclick="openReset()">Reiniciar</button></div>
+</div></div>
+<div id="resetBox"><div class="fcard">
+  <h2 class="title">Reiniciar</h2>
+  <p>¿Qué quieres hacer?</p>
+  <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px">
+    <button class="btn" id="rsAgain">Empezar mi sopa de nuevo</button>
+    <button class="btn ghost" id="rsProfile">Cambiar nombre o sombrero</button>
+    <button class="btn ghost" id="rsCancel">Cancelar</button>
+  </div>
 </div></div>
 <canvas id="fx"></canvas>
 <div class="net pill"><span class="dot" id="netDot"></span><span id="netTxt">conectando</span></div>
@@ -93,7 +116,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:40}
 <script src="common.js"></script>
 <script>
 const $ = id => document.getElementById(id);
-const GOOD = [['¡Bien hecho!','happy'],['¡Súper!','hype'],['¡Buen movimiento!','happy'],['¡Excelente!','hype'],['¡Objeción aceptada!','happy'],['¡Así se litiga!','hype'],['¡Genial!','hype'],['¡Impecable!','happy']];
+const GOOD = [['¡Bien hecho!','happy'],['¡Súper!','hype'],['¡Buen movimiento!','happy'],['¡Sublime!','hype'],['¡Objeción aceptada!','happy'],['¡Así se litiga!','hype'],['¡Ha lugar!','hype'],['¡Impecable!','happy'],['¡Jurisprudencia pura!','hype'],['¡Con todo el peso de la ley!','hype'],['¡Argumento irrefutable!','happy']];
 const BAD = [['¡Ups!','sad'],['Objeción denegada','sad'],['Casi...','calm'],['Uy, no','sad'],['Inténtalo otra vez','calm']];
 
 /* ---------- estado ---------- */
@@ -104,12 +127,12 @@ let config = null, puzzle = null, found = new Set(), startTime = 0, finished = f
 /* ---------- login ---------- */
 function renderPreview() {
   $('pv').innerHTML = SJ.avatarSVG(look, 150);
-  $('pvTitle').textContent = look.title + ' ' + ($('nick').value.trim() || '???');
+  $('pvTitle').textContent = $('nick').value.trim() || '???';
   $('hats').innerHTML = SJ.HATS.map(h => `<button type="button" class="hat ${h.id === look.hat ? 'sel' : ''}" data-h="${h.id}">${SJ.avatarSVG({ ...look, hat: h.id, prop: '' }, 54)}<span>${h.name}</span></button>`).join('');
 }
 $('hats').addEventListener('click', e => { const b = e.target.closest('.hat'); if (!b) return; look.hat = b.dataset.h; SJ.sfx.tick(); renderPreview(); });
 $('shuffle').onclick = () => { const h = look.hat; look = SJ.randomLook(Math.random()); look.hat = h; SJ.sfx.tick(); renderPreview(); };
-$('nick').addEventListener('input', () => { $('pvTitle').textContent = look.title + ' ' + ($('nick').value.trim() || '???'); });
+$('nick').addEventListener('input', () => { $('pvTitle').textContent = $('nick').value.trim() || '???'; });
 if (me.nick) $('nick').value = me.nick;
 renderPreview();
 
@@ -121,7 +144,7 @@ $('go').onclick = () => {
   joined = true;
   $('login').classList.remove('on'); $('game').classList.add('on');
   $('meAv').innerHTML = SJ.avatarSVG(look, 46);
-  $('meNick').textContent = look.title + ' ' + nick;
+  $('meNick').textContent = nick;
   if (!config) config = { round: 'default', words: SJ.DEFAULT_WORDS };
   startRound(true);
 };
@@ -129,11 +152,11 @@ $('go').onclick = () => {
 /* ---------- juego ---------- */
 function startRound(resume) {
   const saved = SJ.store.get('progress');
-  puzzle = SJ.buildPuzzle(config.words, me.id + '|' + me.nick + '|' + config.round);
-  found = new Set(); finished = false; startTime = Date.now();
-  if (resume && saved && saved.round === config.round && saved.nick === me.nick) {
+  puzzle = SJ.buildPuzzle(config.words, me.id + '|' + me.nick + '|' + config.round + '|' + (me.tries || 0));
+  found = new Set(); finished = false; startTime = Date.now(); finds = []; lastFind = 0;
+  if (resume && saved && saved.round === config.round && saved.nick === me.nick && (saved.tries || 0) === (me.tries || 0)) {
     saved.found.forEach(w => puzzle.words.includes(w) && found.add(w));
-    startTime = saved.start || startTime;
+    startTime = saved.start || startTime; lastFind = saved.lf || 0;
   }
   drawGrid(); drawWords(); updateProgress(); publish();
   clearInterval(timerId); timerId = setInterval(tickClock, 500); tickClock();
@@ -222,7 +245,7 @@ boardEl.addEventListener('pointerup', endSel);
 boardEl.addEventListener('pointercancel', () => { sel = null; showSel([]); });
 
 function onFound(p, cells) {
-  found.add(p.word);
+  found.add(p.word); lastFind = Date.now(); finds.push(lastFind);
   paintFound({ word: p.word, cells });
   showSel([]);
   const chip = document.querySelector(`.word[data-w="${p.word}"]`);
@@ -236,6 +259,9 @@ function onFound(p, cells) {
   if (navigator.vibrate) try { navigator.vibrate(40); } catch (e) {}
   saveProgress();
   if (done) finish(); else publish();
+  const recent = finds.filter(t => Date.now() - t < 30000).length;
+  if (!done && recent >= 3) { boardEl.classList.add('onfire'); clearTimeout(fireT); fireT = setTimeout(() => boardEl.classList.remove('onfire'), 8000); later(() => { ticker('¡Estás arrasando!'); SJ.sayQ('¡Estás arrasando!', 'hype', 2); }, 1300); }
+  later(rankEvents, 1500);
 }
 function onMiss() {
   boardEl.classList.remove('bad'); void boardEl.offsetWidth; boardEl.classList.add('bad');
@@ -251,12 +277,12 @@ function finish() {
   setTimeout(() => {
     SJ.sfx.win();
     $('finAv').innerHTML = SJ.avatarSVG(look, 120);
-    $('finTxt').textContent = `${look.title} ${me.nick}, encontraste las ${puzzle.words.length} palabras en ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}. Mira el tablero.`;
+    $('finTxt').textContent = `${me.nick}, encontraste las ${puzzle.words.length} palabras en ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}. Mira el tablero.`;
     $('finish').classList.add('on');
     for (let i = 0; i < 4; i++) setTimeout(() => burst(innerWidth * Math.random(), innerHeight * .4 * Math.random(), 90), i * 300);
   }, 900);
 }
-function saveProgress() { SJ.store.set('progress', { round: config.round, nick: me.nick, found: [...found], start: startTime }); }
+function saveProgress() { SJ.store.set('progress', { round: config.round, nick: me.nick, found: [...found], start: startTime, tries: me.tries || 0, lf: lastFind }); }
 
 /* ---------- efectos ---------- */
 function toast(t, kind) {
@@ -282,14 +308,74 @@ function loop() {
   if (parts.length) requestAnimationFrame(loop);
 }
 
+/* ---------- rivales y ranking ---------- */
+let others = {}, finds = [], lastFind = 0, fireT = null, prevRank = null, lastClose = 0, tickT = null;
+function later(fn, ms) { setTimeout(fn, ms); }
+function ticker(t) { const el = $('ticker'); el.textContent = t; el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); clearTimeout(tickT); tickT = setTimeout(() => el.textContent = '', 4500); }
+function standings() {
+  const list = Object.values(others).filter(p => p.round === config.round && p.id !== me.id);
+  if (puzzle) list.push({ id: me.id, nick: me.nick, found: found.size, done: finished, time: me.time, lf: lastFind, ts: lastFind || startTime });
+  return SJ.rank(list);
+}
+function rankEvents(passer) {
+  if (!joined || !puzzle) return;
+  const st = standings(), i = st.findIndex(p => p.id === me.id), n = st.length;
+  $('rankp').textContent = n > 1 ? `#${i + 1} de ${n}` : '';
+  if (prevRank !== null && n > 1) {
+    if (i < prevRank && !passer) {
+      const beaten = st[i + 1];
+      if (i === 0) { ticker('¡Vas en primer lugar!'); SJ.sayQ('¡Vas en primer lugar! Que conste en actas.', 'hype', 2); }
+      else if (beaten) { ticker('¡Rebasaste a ' + beaten.nick + '!'); SJ.sayQ('¡Rebasaste a ' + beaten.nick + '! Apelación aceptada.', 'hype', 1); }
+    } else if (i > prevRank && passer && !finished) {
+      ticker('¡' + passer.nick + ' te rebasó! ¡Apela!'); SJ.sayQ('¡Te rebasaron! ¡Apela!', 'calm', 1);
+    } else if (i === 0 && st[1] && !finished && st[0].found - st[1].found <= 1 && st[1].found > 0 && Date.now() - lastClose > 15000) {
+      lastClose = Date.now(); ticker('¡Casi te alcanzan!'); SJ.sayQ('¡Casi te alcanzan!', 'hype', 1);
+    }
+  }
+  prevRank = i;
+}
+function openReset() { $('finish').classList.remove('on'); $('resetBox').classList.add('on'); }
+$('rstBtn').onclick = openReset;
+$('rsCancel').onclick = () => $('resetBox').classList.remove('on');
+$('rsAgain').onclick = () => {
+  $('resetBox').classList.remove('on');
+  me.tries = (me.tries || 0) + 1; me.time = null; SJ.store.set('me', me); SJ.store.set('progress', null);
+  prevRank = null; boardEl.classList.remove('onfire');
+  startRound(false); toast('¡Nuevo juicio!', 'good'); SJ.sfx.join(); SJ.say('¡Nuevo juicio! A darle.', 'hype');
+};
+$('rsProfile').onclick = () => {
+  $('resetBox').classList.remove('on');
+  if (client && client.connected) client.publish(SJ.BASE + '/p/' + me.id, '', { retain: true, qos: 1 });
+  joined = false; puzzle = null; clearInterval(timerId); SJ.store.set('progress', null);
+  me.tries = 0; me.time = null; prevRank = null;
+  $('game').classList.remove('on'); $('login').classList.add('on'); renderPreview();
+};
+$('musBtn').onclick = () => {
+  if (SJ.music.on) { SJ.musicStop(); $('musBtn').classList.remove('on'); }
+  else { SJ.musicPlay(['korobeiniki', 'galope', 'montana'][Math.floor(Math.random() * 3)]); $('musBtn').classList.add('on'); }
+};
+
 /* ---------- tiempo real ---------- */
 function publish() {
   if (!client || !client.connected || !joined || !puzzle) return;
-  const data = { id: me.id, nick: me.nick, look, found: found.size, total: puzzle.words.length, done: finished, time: finished ? me.time : null, start: startTime, round: config.round, ts: Date.now() };
+  const data = { id: me.id, nick: me.nick, look, lf: lastFind, found: found.size, total: puzzle.words.length, done: finished, time: finished ? me.time : null, start: startTime, round: config.round, ts: Date.now() };
   client.publish(SJ.BASE + '/p/' + me.id, JSON.stringify(data), { retain: true, qos: 1 });
 }
 function setNet(s) { $('netDot').className = 'dot ' + s; $('netTxt').textContent = { online: 'en vivo', reconnect: 'reconectando', offline: 'sin conexión', error: 'error de red' }[s] || s; if (s === 'online') publish(); }
 client = SJ.connect((topic, data) => {
+  if (topic.startsWith('p/')) {
+    const id = topic.slice(2);
+    if (id === me.id) return;
+    const prev = others[id];
+    if (!data) { delete others[id]; return; }
+    others[id] = data;
+    if (joined && config && data.round === config.round && (!prev || data.found > prev.found)) {
+      const st = standings(), mine = st.findIndex(p => p.id === me.id), theirs = st.findIndex(p => p.id === id);
+      rankEvents(theirs < mine && prevRank !== null && theirs <= prevRank ? data : null);
+      if (data.done && !(prev && prev.done)) ticker(data.nick + ' cerró su caso');
+    }
+    return;
+  }
   if (topic === 'config' && data && data.words && data.words.length) {
     const changed = !config || config.round !== data.round;
     config = data;
@@ -299,7 +385,7 @@ client = SJ.connect((topic, data) => {
     }
   }
 }, setNet);
-client.on('connect', () => client.subscribe(SJ.BASE + '/config', { qos: 1 }));
+client.on('connect', () => client.subscribe([SJ.BASE + '/config', SJ.BASE + '/p/+'], { qos: 1 }));
 </script>
 </body>
 </html>

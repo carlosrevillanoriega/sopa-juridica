@@ -10,53 +10,82 @@
 <link rel="stylesheet" href="style.css">
 <style>
 body{min-height:100vh}
-header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:16px 20px}
-header h1{font-size:clamp(1.6rem,3vw,2.6rem)}
+header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 20px}
+header h1{font-size:clamp(1.5rem,2.8vw,2.5rem)}
 header .sp{flex:1}
 .count{font-size:1.1rem;font-weight:600;background:var(--card);padding:.4rem 1rem;border-radius:999px}
 .count b{color:var(--rosa);font-size:1.4rem}
-main{display:grid;grid-template-columns:1fr 320px;gap:16px;padding:0 20px 20px}
+header .btn{font-size:.9rem;padding:.55rem 1rem}
+.sel{background:var(--card);color:var(--txt);border:2px solid var(--line);border-radius:999px;padding:.5rem .9rem;font-family:inherit;font-size:.9rem;outline:none}
+.btn.warn{background:linear-gradient(135deg,#F43F5E,#BE185D);box-shadow:0 6px 0 #881337}
+main{display:grid;grid-template-columns:1fr 310px;gap:16px;padding:0 20px 20px}
 @media (max-width:900px){main{grid-template-columns:1fr}}
 .panel{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:14px}
 .panel h3{color:var(--lila);font-size:1rem;margin-bottom:10px}
 aside{display:flex;flex-direction:column;gap:14px}
 .qr{background:#fff;border-radius:16px;padding:10px;display:flex;justify-content:center;cursor:zoom-in}
-.qr svg{width:100%;height:auto;max-width:240px;display:block}
+.qr svg{width:100%;height:auto;max-width:230px;display:block}
 .qrtxt{font-size:.85rem;color:var(--muted);text-align:center;margin-top:8px;word-break:break-all}
 .inp{width:100%;background:var(--bg2);border:2px solid var(--line);border-radius:12px;padding:.55rem .8rem;color:var(--txt);font-size:.95rem;outline:none;margin-bottom:8px}
 .inp:focus{border-color:var(--lila)}
 textarea.inp{min-height:110px;resize:vertical}
 .btns{display:flex;flex-wrap:wrap;gap:8px}
 .btns .btn{font-size:.9rem;padding:.55rem 1rem}
-/* jugadores */
-.podium{display:flex;justify-content:center;align-items:flex-end;gap:14px;margin-bottom:14px;min-height:0}
-.pod{text-align:center;animation:pop .6s}
-.pod .base{border-radius:14px 14px 0 0;background:linear-gradient(180deg,var(--morado),#5B21B6);margin-top:6px;display:flex;align-items:flex-start;justify-content:center;padding-top:6px;font-size:1.6rem;font-weight:700}
-.pod.p1 .base{height:90px;background:linear-gradient(180deg,#F5C542,#B7860B);color:#3b2600}
-.pod.p2 .base{height:64px;background:linear-gradient(180deg,#DDD6FE,#A78BFA);color:#2E1065}
-.pod.p3 .base{height:48px;background:linear-gradient(180deg,#F0ABFC,#C026D3)}
-.pod .n{font-weight:600;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.players{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
-.pl{position:relative;background:var(--card2);border:2px solid var(--line);border-radius:20px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;animation:pop .6s;transition:border-color .3s,transform .3s}
+/* podio */
+.podium{display:flex;justify-content:center;align-items:flex-end;gap:16px;margin:6px 0 16px}
+.pod{text-align:center;transition:all .6s}
+.pod .base{border-radius:14px 14px 0 0;margin-top:6px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:6px;font-size:1.6rem;font-weight:700;width:130px}
+.pod .base small{font-size:.8rem;font-weight:500;opacity:.85}
+.pod.p1 .base{height:96px;background:linear-gradient(180deg,#F5C542,#B7860B);color:#3b2600}
+.pod.p2 .base{height:70px;background:linear-gradient(180deg,#E9E5FF,#A78BFA);color:#2E1065}
+.pod.p3 .base{height:52px;background:linear-gradient(180deg,#F5B38A,#B45309);color:#3b1a00}
+.pod .n{font-weight:600;max-width:150px;font-size:.95rem;line-height:1.1;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pod.p1 svg{filter:drop-shadow(0 0 14px rgba(245,197,66,.8))}
+/* tarjetas */
+.players{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:14px;padding-top:22px}
+.pl{position:relative;background:var(--card2);border:2px solid var(--line);border-radius:20px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;animation:pop .6s}
 .pl.done{border-color:var(--oro);box-shadow:0 0 22px rgba(245,197,66,.35)}
-.pl.bump{transform:scale(1.07)}
-.pl .rank{position:absolute;top:8px;left:10px;font-weight:700;color:var(--muted)}
-.pl .nm{font-weight:600;font-size:1.05rem;text-align:center;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl.r1{border-color:#F5C542}.pl.r2{border-color:#DDD6FE}.pl.r3{border-color:#F5B38A}
+.pl .rank{position:absolute;top:8px;left:10px;font-weight:700;color:var(--muted);font-size:1.05rem}
+.pl.r1 .rank{color:#F5C542}.pl.r2 .rank{color:#E9E5FF}.pl.r3 .rank{color:#F5B38A}
+.pl .nm{font-weight:600;font-size:1rem;text-align:center;max-width:100%;line-height:1.15;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.3em}
 .pl .bar{width:100%;height:10px;background:rgba(255,255,255,.1);border-radius:9px;overflow:hidden}
 .pl .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--morado),var(--rosa));transition:width .6s}
 .pl.done .bar i{background:linear-gradient(90deg,#F5C542,#FDE68A)}
 .pl .meta{font-size:.85rem;color:var(--muted)}
 .pl .x{position:absolute;top:6px;right:8px;background:none;color:var(--muted);font-size:1rem;opacity:0}
 .pl:hover .x{opacity:1}
+.pl.up{box-shadow:0 0 0 3px var(--ok),0 0 30px rgba(52,211,153,.5)}
+/* fuego */
+.flames{position:absolute;left:0;right:0;top:-30px;height:44px;display:none;justify-content:center;align-items:flex-end;gap:2px;pointer-events:none}
+.pl.onfire .flames{display:flex}
+.pl.onfire{border-color:#FB923C;animation:fireGlow .35s infinite alternate}
+.flames i{width:20px;height:36px;background:radial-gradient(ellipse at 50% 85%,#FEF08A 0%,#FDBA74 30%,#F97316 55%,#DC2626 75%,transparent 77%);border-radius:50% 50% 40% 40%/65% 65% 35% 35%;animation:flick .45s infinite alternate;transform-origin:50% 100%;filter:blur(.6px)}
+.flames i:nth-child(2){height:44px;animation-delay:.1s}.flames i:nth-child(3){height:30px;animation-delay:.2s}.flames i:nth-child(4){height:40px;animation-delay:.05s}.flames i:nth-child(5){height:28px;animation-delay:.15s}
+.firetag{position:absolute;bottom:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#F97316,#DC2626);color:#fff;font-size:.72rem;font-weight:700;padding:.15rem .6rem;border-radius:999px;display:none;white-space:nowrap;letter-spacing:.5px}
+.pl.onfire .firetag{display:block}
+@keyframes flick{from{transform:scaleY(.85) scaleX(1.05) rotate(-3deg)}to{transform:scaleY(1.15) scaleX(.92) rotate(3deg)}}
+@keyframes fireGlow{from{box-shadow:0 0 18px #F97316,0 -8px 40px rgba(239,68,68,.45)}to{box-shadow:0 0 30px #FB923C,0 -16px 60px rgba(239,68,68,.7)}}
+/* duelo */
+#duel{display:none;align-items:center;justify-content:center;gap:18px;margin-bottom:28px;padding:12px;border-radius:22px;background:linear-gradient(90deg,rgba(124,58,237,.35),rgba(220,38,38,.45),rgba(124,58,237,.35));border:2px solid #FB923C;animation:pop .5s,fireGlow .35s infinite alternate;position:relative}
+#duel.on{display:flex}
+#duel .who{text-align:center;font-weight:600;max-width:200px;overflow-wrap:anywhere}
+#duel .vs{font-size:2.6rem;font-weight:700;color:#FDE047;text-shadow:0 0 18px #F97316,0 3px 0 #7C2D12;animation:bob .6s infinite}
+#duel .msg{position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);background:#DC2626;color:#fff;padding:.2rem .9rem;border-radius:999px;font-weight:700;white-space:nowrap;font-size:.95rem}
+/* anuncio */
+#announce{position:fixed;left:50%;top:38%;z-index:80;pointer-events:none;font-size:clamp(2rem,5.5vw,4.4rem);font-weight:700;text-align:center;width:90vw;line-height:1.05;color:#fff;text-shadow:0 5px 0 #4C1D95,0 0 40px rgba(240,171,252,.9)}
+#announce.go{animation:floatUp 2.6s ease-out forwards}
+#announce.fire{color:#FDE047;text-shadow:0 5px 0 #7C2D12,0 0 40px #F97316,0 0 80px #DC2626}
 .empty{color:var(--muted);text-align:center;padding:40px 10px;font-size:1.2rem}
-.empty div{animation:bob 2s infinite;display:inline-block}
+.empty div{animation:bob 2s infinite;display:inline-block;font-size:2.4rem}
 #zoom{position:fixed;inset:0;background:rgba(26,11,46,.94);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:90;cursor:zoom-out;padding:20px}
 #zoom.on{display:flex}
 #zoom .qr{cursor:zoom-out;padding:24px}
 #zoom .qr svg{max-width:min(70vh,90vw);width:min(70vh,90vw)}
 #zoom p{font-size:clamp(1.2rem,3vw,2.2rem);margin-top:16px;text-align:center;font-weight:600}
-.feed{position:fixed;left:20px;bottom:20px;display:flex;flex-direction:column;gap:6px;z-index:50;pointer-events:none}
+.feed{position:fixed;left:20px;bottom:20px;display:flex;flex-direction:column;gap:6px;z-index:50;pointer-events:none;max-width:60vw}
 .feed div{background:var(--card2);border:2px solid var(--lila);padding:.5rem 1rem;border-radius:999px;animation:pop .5s;font-weight:500}
+canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:75}
 </style>
 </head>
 <body>
@@ -66,19 +95,27 @@ textarea.inp{min-height:110px;resize:vertical}
   <span class="pill">Sala: <b id="sala"></b></span>
   <span class="sp"></span>
   <span class="count"><b id="cnt">0</b> jugadores</span>
-  <button class="btn" id="sound">Activar sonido</button>
+  <button class="btn" id="sound">Activar voz</button>
+  <select class="sel" id="music" title="Música">
+    <option value="">Música: apagada</option>
+    <option value="korobeiniki">Korobeiniki (duelo)</option>
+    <option value="montana">Rey de la Montaña (tensión)</option>
+    <option value="galope">Galope final (carrera)</option>
+  </select>
+  <button class="btn warn" id="restart">Reiniciar juego</button>
   <button class="btn ghost" id="fs">Pantalla completa</button>
 </header>
 <main>
   <section>
+    <div id="duel"></div>
     <div class="podium" id="podium"></div>
     <div class="players" id="players"></div>
-    <div class="empty" id="empty"><div>⚖</div><br>Esperando abogados... escaneen el QR para entrar</div>
+    <div class="empty" id="empty"><div>&#9878;</div><br>Esperando abogados... escaneen el QR para entrar</div>
   </section>
   <aside>
     <div class="panel">
       <h3>1 · Entra al juego</h3>
-      <div class="qr" id="qrGame" data-label=""></div>
+      <div class="qr" id="qrGame"></div>
       <div class="qrtxt" id="gameUrl"></div>
     </div>
     <div class="panel">
@@ -94,7 +131,7 @@ textarea.inp{min-height:110px;resize:vertical}
       <h3>Palabras de la ronda</h3>
       <textarea class="inp" id="wordsIn" placeholder="Una palabra por línea o separadas por coma"></textarea>
       <div class="btns">
-        <button class="btn" id="newRound">Nueva ronda</button>
+        <button class="btn" id="newRound">Aplicar palabras</button>
         <button class="btn ghost" id="clear">Borrar jugadores</button>
       </div>
       <div class="qrtxt" id="roundInfo"></div>
@@ -102,7 +139,9 @@ textarea.inp{min-height:110px;resize:vertical}
   </aside>
 </main>
 <div id="zoom"><div class="qr" id="zoomQr"></div><p id="zoomTxt"></p></div>
+<div id="announce"></div>
 <div class="feed" id="feed"></div>
+<canvas id="fx"></canvas>
 
 <script src="mqtt.min.js"></script>
 <script src="qrcode.js"></script>
@@ -111,6 +150,7 @@ textarea.inp{min-height:110px;resize:vertical}
 const $ = id => document.getElementById(id);
 $('sala').textContent = SJ.SALA;
 let soundOn = false, config = null, players = {}, client;
+const pick = a => a[Math.floor(Math.random() * a.length)];
 
 /* ---------- QR ---------- */
 function qrSVG(text) {
@@ -132,9 +172,8 @@ function renderWifi() {
   $('qrWifi').dataset.label = `WiFi: ${ssid}${pass ? ' · ' + pass : ''}`;
 }
 const wifi = SJ.store.get('wifi') || {};
-const qp = SJ.params;
-$('ssid').value = qp.get('ssid') || wifi.ssid || '';
-$('pass').value = qp.get('pass') || wifi.pass || '';
+$('ssid').value = SJ.params.get('ssid') || wifi.ssid || '';
+$('pass').value = SJ.params.get('pass') || wifi.pass || '';
 $('ssid').oninput = $('pass').oninput = renderWifi; renderWifi();
 document.querySelectorAll('aside .qr').forEach(el => el.onclick = () => {
   if (!el.querySelector('svg')) return;
@@ -143,7 +182,8 @@ document.querySelectorAll('aside .qr').forEach(el => el.onclick = () => {
 $('zoom').onclick = () => $('zoom').classList.remove('on');
 
 /* ---------- controles ---------- */
-$('sound').onclick = () => { soundOn = !soundOn; $('sound').textContent = soundOn ? 'Sonido activo' : 'Activar sonido'; if (soundOn) { SJ.sfx.join(); SJ.say('Sonido activado. ¡Que empiece el juicio!', 'happy'); } };
+$('sound').onclick = () => { soundOn = !soundOn; $('sound').textContent = soundOn ? 'Voz activa' : 'Activar voz'; if (soundOn) { SJ.sfx.join(); SJ.say('Voz activada. ¡Se abre la sesión del tribunal!', 'happy'); } };
+$('music').onchange = e => { const v = e.target.value; if (v) SJ.musicPlay(v); else SJ.musicStop(); };
 $('fs').onclick = () => { try { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); } catch (e) {} };
 function parseWords() {
   return [...new Set($('wordsIn').value.split(/[\n,;]+/).map(w => SJ.normWord(w.trim())).filter(w => w.length >= 2 && w.length <= 13))].slice(0, 14);
@@ -151,15 +191,24 @@ function parseWords() {
 function publishConfig(words) {
   config = { round: 'r' + Date.now().toString(36), words, ts: Date.now() };
   client.publish(SJ.BASE + '/config', JSON.stringify(config), { retain: true, qos: 1 });
-  showConfig();
+  showConfig(); resetState();
 }
 function clearPlayers() {
   Object.keys(players).forEach(id => client.publish(SJ.BASE + '/p/' + id, '', { retain: true, qos: 1 }));
   players = {}; render();
 }
+function resetState() { streak = {}; onFire = {}; leaderId = null; lastDuel = 0; $('duel').classList.remove('on'); }
 $('newRound').onclick = () => {
   const w = parseWords(); if (w.length < 3) { alertFeed('Pon al menos 3 palabras'); return; }
-  clearPlayers(); publishConfig(w); alertFeed('Nueva ronda iniciada'); if (soundOn) SJ.say('¡Nueva ronda!', 'hype');
+  clearPlayers(); publishConfig(w); announce('¡Nueva ronda!'); if (soundOn) SJ.sayQ('¡Nueva ronda! Se abre un nuevo expediente.', 'hype', 3);
+};
+let armed = 0;
+$('restart').onclick = () => {
+  if (Date.now() - armed > 3000) { armed = Date.now(); $('restart').textContent = '¿Seguro? Toca otra vez'; setTimeout(() => $('restart').textContent = 'Reiniciar juego', 3000); return; }
+  armed = 0; $('restart').textContent = 'Reiniciar juego';
+  const w = config ? config.words : SJ.DEFAULT_WORDS;
+  clearPlayers(); publishConfig(w);
+  announce('¡Juego reiniciado!'); if (soundOn) SJ.sayQ('¡Juego reiniciado! Todos a sus lugares. Se abre la audiencia.', 'hype', 3);
 };
 $('clear').onclick = clearPlayers;
 function showConfig() {
@@ -168,60 +217,159 @@ function showConfig() {
   $('roundInfo').textContent = `${config.words.length} palabras · ronda ${config.round}`;
 }
 
-/* ---------- render ---------- */
-function sorted() {
-  return Object.values(players).filter(p => !config || p.round === config.round)
-    .sort((a, b) => (b.done - a.done) || (a.done && b.done ? a.time - b.time : 0) || (b.found - a.found) || (a.ts - b.ts));
+/* ---------- efectos ---------- */
+function announce(t, fire) {
+  const a = $('announce'); a.textContent = t; a.className = ''; void a.offsetWidth; a.className = 'go' + (fire ? ' fire' : '');
 }
+function alertFeed(t) {
+  const d = document.createElement('div'); d.textContent = t; $('feed').appendChild(d);
+  while ($('feed').children.length > 4) $('feed').firstChild.remove();
+  setTimeout(() => d.remove(), 5000);
+}
+function voice(t, mood, prio) { if (soundOn) SJ.sayQ(t, mood, prio); }
+const fx = $('fx'), fctx = fx.getContext('2d'); let parts = [];
+function sizeFx() { fx.width = innerWidth * devicePixelRatio; fx.height = innerHeight * devicePixelRatio; fctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0); }
+addEventListener('resize', sizeFx); sizeFx();
+const COLS = ['#C4B5FD', '#F0ABFC', '#8B5CF6', '#F5C542', '#FFFFFF', '#A78BFA', '#FB923C'];
+function burst(x, y, n) {
+  const was = parts.length;
+  for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, s = 3 + Math.random() * 9; parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 5, life: 70 + Math.random() * 50, c: COLS[i % COLS.length], w: 5 + Math.random() * 7, rot: Math.random() * 6 }); }
+  if (!was) requestAnimationFrame(loop);
+}
+function loop() {
+  fctx.clearRect(0, 0, innerWidth, innerHeight);
+  parts = parts.filter(p => p.life > 0);
+  parts.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += .22; p.vx *= .985; p.life--; p.rot += .2; fctx.save(); fctx.globalAlpha = Math.min(1, p.life / 30); fctx.translate(p.x, p.y); fctx.rotate(p.rot); fctx.fillStyle = p.c; fctx.fillRect(-p.w / 2, -p.w / 4, p.w, p.w / 2); fctx.restore(); });
+  if (parts.length) requestAnimationFrame(loop);
+}
+function cardEl(id) { return document.querySelector(`.pl[data-id="${CSS.escape(id)}"]`); }
+function burstAt(id, n) { const el = cardEl(id); if (!el) return; const r = el.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 3, n); }
+
+/* ---------- render con animación de reacomodo ---------- */
+function sorted() { return SJ.rank(Object.values(players).filter(p => !config || p.round === config.round)); }
 const fmt = s => s == null ? '' : Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+let onFire = {}, streak = {};
 function render() {
   const list = sorted();
   $('cnt').textContent = list.length;
   $('empty').style.display = list.length ? 'none' : 'block';
   const container = $('players');
+  const first = new Map();
+  [...container.children].forEach(el => first.set(el.dataset.id, el.getBoundingClientRect()));
   const ids = new Set(list.map(p => p.id));
   [...container.children].forEach(el => { if (!ids.has(el.dataset.id)) el.remove(); });
   list.forEach((p, i) => {
-    let el = container.querySelector(`[data-id="${p.id}"]`);
-    if (!el) { el = document.createElement('div'); el.className = 'pl'; el.dataset.id = p.id; el.innerHTML = `<span class="rank"></span><button class="x" title="Quitar">✕</button><div class="av"></div><div class="nm"></div><div class="bar"><i></i></div><div class="meta"></div>`; el.querySelector('.x').onclick = () => { client.publish(SJ.BASE + '/p/' + p.id, '', { retain: true, qos: 1 }); }; }
-    el.querySelector('.rank').textContent = '#' + (i + 1);
+    let el = cardEl(p.id);
+    if (!el) {
+      el = document.createElement('div'); el.className = 'pl'; el.dataset.id = p.id;
+      el.innerHTML = `<div class="flames"><i></i><i></i><i></i><i></i><i></i></div><span class="rank"></span><button class="x" title="Quitar">&#10005;</button><div class="av"></div><div class="nm"></div><div class="bar"><i></i></div><div class="meta"></div><span class="firetag">EN RACHA</span>`;
+      el.querySelector('.x').onclick = () => client.publish(SJ.BASE + '/p/' + p.id, '', { retain: true, qos: 1 });
+    }
+    el.querySelector('.rank').textContent = (i + 1) + '°';
     const avKey = JSON.stringify(p.look);
     if (el.dataset.av !== avKey) { el.querySelector('.av').innerHTML = SJ.avatarSVG(p.look || SJ.randomLook(p.id), 84); el.dataset.av = avKey; }
-    el.querySelector('.nm').textContent = (p.look && p.look.title ? p.look.title + ' ' : '') + p.nick;
+    el.querySelector('.nm').textContent = p.nick;
     el.querySelector('.bar i').style.width = (p.found / p.total * 100) + '%';
-    el.querySelector('.meta').textContent = p.done ? `🏆 ${p.total}/${p.total} en ${fmt(p.time)}` : `${p.found}/${p.total} palabras`;
+    el.querySelector('.meta').textContent = p.done ? `Caso cerrado en ${fmt(p.time)}` : `${p.found}/${p.total} palabras`;
     el.classList.toggle('done', !!p.done);
+    el.classList.toggle('onfire', !!onFire[p.id] && onFire[p.id] > Date.now());
+    ['r1', 'r2', 'r3'].forEach((c, k) => el.classList.toggle(c, i === k && p.found > 0));
     if (container.children[i] !== el) container.insertBefore(el, container.children[i] || null);
   });
-  const top = list.filter(p => p.done).slice(0, 3);
-  const order = [top[1], top[0], top[2]];
-  $('podium').innerHTML = top.length ? order.map((p, k) => p ? `<div class="pod p${[2, 1, 3][k]}">${SJ.avatarSVG(p.look, [70, 96, 62][k])}<div class="n">${SJ.esc(p.nick)}</div><div class="base">${[2, 1, 3][k]}</div></div>` : '').join('') : '';
+  // FLIP: animar el desplazamiento de cada tarjeta
+  [...container.children].forEach(el => {
+    const f = first.get(el.dataset.id); if (!f) return;
+    const l = el.getBoundingClientRect(), dx = f.left - l.left, dy = f.top - l.top;
+    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+      el.animate([{ transform: `translate(${dx}px,${dy}px) scale(1.04)`, zIndex: 5 }, { transform: 'none' }], { duration: 750, easing: 'cubic-bezier(.2,.9,.25,1)' });
+      if (dy > 2 || (dy === 0 && dx > 2)) { el.classList.add('up'); setTimeout(() => el.classList.remove('up'), 1200); }
+    }
+  });
+  const top = list.filter(p => p.found > 0).slice(0, 3);
+  const order = [top[1], top[0], top[2]], pl = [2, 1, 3], sz = [72, 100, 62];
+  $('podium').innerHTML = order.map((p, k) => p ? `<div class="pod p${pl[k]}">${SJ.avatarSVG(p.look, sz[k])}<div class="n">${SJ.esc(p.nick)}</div><div class="base">${pl[k]}°<small>${p.done ? fmt(p.time) : p.found + '/' + p.total}</small></div></div>` : '').join('');
+  // intensidad de la música: sube el tempo cuando la carrera está cerrada o alguien está por terminar
+  const L = list[0], S = list[1];
+  let mul = 1;
+  if (L && S && !L.done && L.found - S.found <= 1 && S.found >= 2) mul += .12;
+  if (L && !L.done && L.found / L.total >= .7) mul += .1;
+  SJ.music.mul = mul;
 }
-function alertFeed(t) {
-  const d = document.createElement('div'); d.textContent = t; $('feed').appendChild(d);
-  setTimeout(() => d.remove(), 4000);
+
+/* ---------- narrador ---------- */
+const PRAISE = ['¡Sublime, {n}!', '¡Bien hecho, {n}!', '¡{n} está imparable!', '¡Ha lugar, {n}!', '¡Jurisprudencia pura, {n}!', '¡Con todo el peso de la ley, {n}!', '¡Argumento irrefutable de {n}!', '¡{n} presenta pruebas contundentes!', '¡Se acepta la prueba de {n}!'];
+const LEADER = ['¡Nuevo líder! {n} toma la delantera', '¡Se revoca la sentencia! {n} pasa al primer lugar', '¡{n} encabeza el expediente!', '¡Cambio de jurisprudencia! {n} va primero'];
+const PASS = ['¡{n} rebasó a {o}! Apelación aceptada', '¡{n} deja atrás a {o}!', '¡{o}, te rebasó {n}! Hay que apelar'];
+const DUEL = ['¡Casi te alcanzan, {l}!', '¡Duelo en el tribunal! {l} contra {s}', '¡Esto se define en última instancia!', '¡{s} le pisa los talones a {l}!', '¡Careo de alto nivel: {l} contra {s}!'];
+const FIRE = ['¡{n} está arrasando!', '¡{n} está en llamas!', '¡{n} viene con todo el código penal!', '¡Nadie detiene a {n}!'];
+const fill = (t, o) => t.replace(/\{(\w)\}/g, (_, k) => o[k] || '');
+let leaderId = null, lastDuel = 0;
+function showDuel(L, S) {
+  const d = $('duel');
+  d.innerHTML = `<div class="who">${SJ.avatarSVG(L.look, 70)}<div>${SJ.esc(L.nick)}</div><small>${L.found}/${L.total}</small></div><div class="vs">VS</div><div class="who">${SJ.avatarSVG(S.look, 70)}<div>${SJ.esc(S.nick)}</div><small>${S.found}/${S.total}</small></div><div class="msg">${L.found === S.found ? '¡EMPATE TÉCNICO!' : '¡CASI TE ALCANZAN!'}</div>`;
+  d.classList.remove('on'); void d.offsetWidth; d.classList.add('on');
+  clearTimeout(showDuel.t); showDuel.t = setTimeout(() => d.classList.remove('on'), 7000);
 }
-function bump(id) { const el = document.querySelector(`.pl[data-id="${id}"]`); if (el) { el.classList.add('bump'); setTimeout(() => el.classList.remove('bump'), 300); } }
+function events(id, data, prev, before) {
+  const after = sorted(), ids = after.map(p => p.id);
+  const oldIdx = before.indexOf(id), newIdx = ids.indexOf(id), n = data.nick;
+  if (!prev) {
+    alertFeed(`${n} entró a la sala`);
+    if (soundOn) SJ.sfx.join();
+    voice(`Se presenta ${n} en el juzgado`, 'happy', 1);
+    return;
+  }
+  if (data.found <= prev.found) return;
+  const now = Date.now();
+  streak[id] = (streak[id] || []).filter(t => now - t < 30000); streak[id].push(now);
+  let spoke = false;
+  if (data.done && !prev.done) {
+    const firstDone = after.filter(p => p.done).length === 1;
+    if (firstDone) { announce(`¡CASO CERRADO! ${n} gana el juicio`, true); voice(`¡Caso cerrado! ${n} gana el juicio. ¡Sentencia firme!`, 'hype', 3); if (soundOn) SJ.sfx.win(); for (let i = 0; i < 5; i++) setTimeout(() => burst(innerWidth * Math.random(), innerHeight * .5 * Math.random(), 90), i * 280); }
+    else { alertFeed(`${n} cerró su caso en ${fmt(data.time)}`); voice(`${n} cerró su caso. Lugar número ${newIdx + 1}`, 'happy', 1); burstAt(id, 60); }
+    return;
+  }
+  if (streak[id].length >= 3) {
+    onFire[id] = now + 10000; setTimeout(render, 10100);
+    const t = fill(pick(FIRE), { n }); announce(t, true); voice(t, 'hype', 2); spoke = true;
+    streak[id] = [];
+  }
+  if (ids[0] === id && leaderId !== id && data.found >= 1 && before.length > 1) {
+    const t = fill(pick(LEADER), { n }); if (!spoke) announce(t); voice(t, 'hype', 2); spoke = true; burstAt(id, 70);
+  } else if (oldIdx > -1 && newIdx < oldIdx && !spoke) {
+    const o = players[before[newIdx]]; if (o) { const t = fill(pick(PASS), { n, o: o.nick }); alertFeed(t); voice(t, 'happy', 1); spoke = true; }
+  }
+  leaderId = ids[0];
+  const L = after[0], S = after[1];
+  if (L && S && !L.done && (id === L.id || id === S.id) && L.found - S.found <= 1 && S.found >= 2 && now - lastDuel > 12000) {
+    lastDuel = now; showDuel(L, S);
+    const t = fill(pick(DUEL), { l: L.nick, s: S.nick }); if (!spoke) announce(t, true); voice(t, 'hype', 2); spoke = true;
+  }
+  if (!spoke && data.found === Math.ceil(data.total / 2)) { alertFeed(`${n} va a la mitad del expediente`); voice(`${n} va a la mitad del expediente`, 'calm', 1); spoke = true; }
+  if (!spoke && Math.random() < .3) voice(fill(pick(PRAISE), { n }), 'hype', 1);
+  if (soundOn && !spoke) SJ.sfx.tick();
+}
 
 /* ---------- tiempo real ---------- */
 function setNet(s) { $('netDot').className = 'dot ' + s; $('netTxt').textContent = { online: 'en vivo', reconnect: 'reconectando', offline: 'sin conexión', error: 'error de red' }[s] || s; }
-let gotConfig = false;
+let gotConfig = false, ready = false;
 client = SJ.connect((topic, data) => {
-  if (topic === 'config') { if (data && data.words) { config = data; gotConfig = true; showConfig(); render(); } return; }
+  if (topic === 'config') { if (data && data.words) { if (config && config.round !== data.round) resetState(); config = data; gotConfig = true; showConfig(); render(); } return; }
   if (!topic.startsWith('p/')) return;
   const id = topic.slice(2);
   if (!data) { delete players[id]; render(); return; }
   if (!data.nick || typeof data.found !== 'number') return;
-  const prev = players[id];
-  data.nick = String(data.nick).slice(0, 16);
+  const prev = players[id] && (!config || players[id].round === config.round) ? players[id] : null;
+  const before = sorted().map(p => p.id);
+  data.nick = String(data.nick).slice(0, 50);
   players[id] = data;
   render();
   if (config && data.round !== config.round) return;
-  if (!prev) { alertFeed(`${data.nick} entró a la sala`); if (soundOn) { SJ.sfx.join(); SJ.say(`Se unió ${data.nick}`, 'happy'); } }
-  else if (data.found > prev.found) { bump(id); if (data.done && !prev.done) { alertFeed(`🏆 ${data.nick} terminó en ${fmt(data.time)}`); if (soundOn) { SJ.sfx.win(); SJ.say(`¡${data.nick} cerró el caso!`, 'hype'); } } else if (soundOn) SJ.sfx.tick(); }
+  if (ready) events(id, data, prev, before);
 }, setNet);
 client.on('connect', () => {
   client.subscribe([SJ.BASE + '/config', SJ.BASE + '/p/+'], { qos: 1 });
+  setTimeout(() => ready = true, 2000);
   setTimeout(() => { if (!gotConfig) { $('wordsIn').value = SJ.DEFAULT_WORDS.join('\n'); publishConfig(SJ.DEFAULT_WORDS); } }, 2500);
 });
 </script>
