@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#1A0B2E">
+<title>Sopa Jurídica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.screen{min-height:100dvh;display:none;flex-direction:column;align-items:center;padding:16px}
+.screen.on{display:flex}
+/* login */
+#login{justify-content:center;gap:14px;max-width:520px;margin:0 auto}
+#login h1{font-size:2.2rem;text-align:center;line-height:1.05}
+#login .sub{color:var(--muted);text-align:center;margin-top:-6px}
+.preview{position:relative;animation:bob 2.4s ease-in-out infinite}
+.preview .badge{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);background:var(--card2);border:2px solid var(--line);padding:.15rem .7rem;border-radius:999px;font-size:.85rem;white-space:nowrap}
+.field{width:100%;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:.9rem 1.1rem;color:var(--txt);font-size:1.2rem;outline:none;text-align:center}
+.field:focus{border-color:var(--lila)}
+.label{align-self:flex-start;color:var(--lila);font-weight:600;font-size:.95rem}
+.hats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+.hat{background:var(--card);border:2px solid transparent;border-radius:16px;padding:6px 4px 4px;color:var(--muted);font-size:.72rem;display:flex;flex-direction:column;align-items:center;gap:2px;transition:transform .15s}
+.hat.sel{border-color:var(--lila);background:var(--card2);color:var(--txt);transform:scale(1.04)}
+.row{display:flex;gap:10px;width:100%}
+.row .btn{flex:1}
+/* juego */
+#game{padding:10px 10px 24px;gap:10px;max-width:560px;margin:0 auto}
+.top{width:100%;display:flex;align-items:center;gap:10px;background:var(--card);border-radius:18px;padding:8px 12px}
+.top .who{flex:1;min-width:0}
+.top .nick{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{height:8px;background:rgba(255,255,255,.1);border-radius:9px;overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--morado),var(--rosa));transition:width .5s}
+.clock{font-variant-numeric:tabular-nums;font-weight:600;color:var(--lila2)}
+.board{position:relative;width:100%;touch-action:none;user-select:none;-webkit-user-select:none;background:linear-gradient(160deg,#3B2270,#2A1250);border-radius:20px;padding:8px;box-shadow:inset 0 0 0 2px var(--line),0 12px 30px rgba(0,0,0,.35)}
+.grid{display:grid;gap:3px}
+.cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-weight:600;border-radius:8px;background:rgba(221,214,254,.08);color:var(--lila2);font-size:clamp(.85rem,4.3vw,1.5rem);transition:background .15s,transform .15s,color .15s}
+.cell.sel{background:var(--lila);color:#2E1065;transform:scale(1.08)}
+.cell.found{color:#fff}
+.board.bad{animation:shake .45s}
+.board.bad .cell.sel{background:var(--err);color:#fff}
+.words{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;width:100%}
+.word{background:var(--card);border:2px solid var(--line);padding:.35rem .8rem;border-radius:999px;font-weight:600;letter-spacing:1px;transition:all .5s cubic-bezier(.3,1.6,.5,1)}
+.word.got{text-decoration:line-through;opacity:.45;transform:scale(.88);border-color:var(--ok);background:rgba(52,211,153,.15)}
+.word.flash{transform:scale(1.3);background:var(--ok);color:#06281c;opacity:1;text-decoration:none}
+.toast{position:fixed;left:50%;top:42%;font-size:clamp(1.8rem,9vw,3.4rem);font-weight:700;width:92vw;text-align:center;line-height:1.05;pointer-events:none;z-index:50;text-shadow:0 4px 0 #4C1D95,0 0 30px rgba(240,171,252,.8);animation:floatUp 1.4s ease-out forwards}
+.toast.bad{color:var(--err);text-shadow:0 4px 0 #4c0519}
+.toast.good{color:#fff}
+canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:40}
+#finish{position:fixed;inset:0;background:rgba(26,11,46,.88);display:none;align-items:center;justify-content:center;z-index:60;padding:16px;backdrop-filter:blur(4px)}
+#finish.on{display:flex}
+.fcard{background:var(--card);border:2px solid var(--line);border-radius:26px;padding:24px;text-align:center;max-width:380px;width:100%;animation:pop .6s}
+.fcard h2{font-size:2rem;margin:8px 0}
+.fcard p{color:var(--muted)}
+.net{position:fixed;bottom:8px;right:8px;z-index:30}
+</style>
+</head>
+<body>
+<section id="login" class="screen on">
+  <h1 class="title">Sopa Jurídica</h1>
+  <p class="sub">Elige tu sombrero, ponte un apodo y a buscar.</p>
+  <div class="preview"><div id="pv"></div><div class="badge" id="pvTitle">Lic.</div></div>
+  <input id="nick" class="field" maxlength="16" placeholder="Tu nickname" autocomplete="off">
+  <div class="label">Tu sombrero</div>
+  <div class="hats" id="hats"></div>
+  <div class="row">
+    <button class="btn ghost" id="shuffle" type="button">Otra cara</button>
+    <button class="btn" id="go" type="button">Entrar al juicio</button>
+  </div>
+</section>
+
+<section id="game" class="screen">
+  <div class="top">
+    <div id="meAv"></div>
+    <div class="who"><div class="nick" id="meNick"></div><div class="bar"><i id="prog"></i></div></div>
+    <div class="clock" id="clock">0:00</div>
+  </div>
+  <div class="board" id="board"><div class="grid" id="grid"></div></div>
+  <div class="words" id="words"></div>
+</section>
+
+<div id="finish"><div class="fcard">
+  <div id="finAv"></div>
+  <h2 class="title">¡Caso cerrado!</h2>
+  <p id="finTxt"></p>
+  <button class="btn" style="margin-top:16px" onclick="document.getElementById('finish').classList.remove('on')">Ver mi sopa</button>
+</div></div>
+<canvas id="fx"></canvas>
+<div class="net pill"><span class="dot" id="netDot"></span><span id="netTxt">conectando</span></div>
+
+<script src="mqtt.min.js"></script>
+<script src="common.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const GOOD = [['¡Bien hecho!','happy'],['¡Súper!','hype'],['¡Buen movimiento!','happy'],['¡Excelente!','hype'],['¡Objeción aceptada!','happy'],['¡Así se litiga!','hype'],['¡Genial!','hype'],['¡Impecable!','happy']];
+const BAD = [['¡Ups!','sad'],['Objeción denegada','sad'],['Casi...','calm'],['Uy, no','sad'],['Inténtalo otra vez','calm']];
+
+/* ---------- estado ---------- */
+let me = SJ.store.get('me') || { id: 'p' + Math.random().toString(36).slice(2, 10) };
+let look = me.look || SJ.randomLook(me.id + Date.now());
+let config = null, puzzle = null, found = new Set(), startTime = 0, finished = false, timerId = null, client = null, joined = false;
+
+/* ---------- login ---------- */
+function renderPreview() {
+  $('pv').innerHTML = SJ.avatarSVG(look, 150);
+  $('pvTitle').textContent = look.title + ' ' + ($('nick').value.trim() || '???');
+  $('hats').innerHTML = SJ.HATS.map(h => `<button type="button" class="hat ${h.id === look.hat ? 'sel' : ''}" data-h="${h.id}">${SJ.avatarSVG({ ...look, hat: h.id, prop: '' }, 54)}<span>${h.name}</span></button>`).join('');
+}
+$('hats').addEventListener('click', e => { const b = e.target.closest('.hat'); if (!b) return; look.hat = b.dataset.h; SJ.sfx.tick(); renderPreview(); });
+$('shuffle').onclick = () => { const h = look.hat; look = SJ.randomLook(Math.random()); look.hat = h; SJ.sfx.tick(); renderPreview(); };
+$('nick').addEventListener('input', () => { $('pvTitle').textContent = look.title + ' ' + ($('nick').value.trim() || '???'); });
+if (me.nick) $('nick').value = me.nick;
+renderPreview();
+
+$('go').onclick = () => {
+  const nick = $('nick').value.trim().replace(/\s+/g, ' ');
+  if (nick.length < 2) { $('nick').focus(); $('nick').animate([{ transform: 'translateX(-8px)' }, { transform: 'translateX(8px)' }, { transform: 'none' }], 300); SJ.sfx.error(); return; }
+  me.nick = nick; me.look = look; SJ.store.set('me', me);
+  SJ.sfx.join(); SJ.say('¡Bienvenido, ' + nick + '!', 'happy');
+  joined = true;
+  $('login').classList.remove('on'); $('game').classList.add('on');
+  $('meAv').innerHTML = SJ.avatarSVG(look, 46);
+  $('meNick').textContent = look.title + ' ' + nick;
+  if (!config) config = { round: 'default', words: SJ.DEFAULT_WORDS };
+  startRound(true);
+};
+
+/* ---------- juego ---------- */
+function startRound(resume) {
+  const saved = SJ.store.get('progress');
+  puzzle = SJ.buildPuzzle(config.words, me.id + '|' + me.nick + '|' + config.round);
+  found = new Set(); finished = false; startTime = Date.now();
+  if (resume && saved && saved.round === config.round && saved.nick === me.nick) {
+    saved.found.forEach(w => puzzle.words.includes(w) && found.add(w));
+    startTime = saved.start || startTime;
+  }
+  drawGrid(); drawWords(); updateProgress(); publish();
+  clearInterval(timerId); timerId = setInterval(tickClock, 500); tickClock();
+  if (found.size === puzzle.words.length) finished = true;
+}
+function tickClock() {
+  if (finished) return;
+  const s = Math.floor((Date.now() - startTime) / 1000);
+  $('clock').textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+const HUES = [270, 300, 330, 200, 160, 40, 250, 285, 315, 190, 140, 20];
+function drawGrid() {
+  const g = $('grid');
+  g.style.gridTemplateColumns = `repeat(${puzzle.size},1fr)`;
+  let html = '';
+  for (let r = 0; r < puzzle.size; r++) for (let c = 0; c < puzzle.size; c++) html += `<div class="cell" data-r="${r}" data-c="${c}">${puzzle.grid[r][c]}</div>`;
+  g.innerHTML = html;
+  puzzle.placed.forEach(p => { if (found.has(p.word)) paintFound(p); });
+}
+function cellEl(r, c) { return $('grid').children[r * puzzle.size + c]; }
+function paintFound(p) {
+  const hue = HUES[puzzle.words.indexOf(p.word) % HUES.length];
+  p.cells.forEach(([r, c]) => { const el = cellEl(r, c); el.classList.add('found'); el.style.background = `hsl(${hue} 70% 55% / .85)`; });
+}
+function drawWords() {
+  $('words').innerHTML = puzzle.words.map(w => `<span class="word ${found.has(w) ? 'got' : ''}" data-w="${w}">${w}</span>`).join('');
+}
+function updateProgress() { $('prog').style.width = (found.size / puzzle.words.length * 100) + '%'; }
+
+/* ---------- arrastre ---------- */
+let sel = null;
+function cellFromPoint(x, y) {
+  const rect = $('grid').getBoundingClientRect();
+  const c = Math.floor((x - rect.left) / rect.width * puzzle.size);
+  const r = Math.floor((y - rect.top) / rect.height * puzzle.size);
+  if (r < 0 || c < 0 || r >= puzzle.size || c >= puzzle.size) return null;
+  return [r, c];
+}
+function lineCells(a, b) {
+  let dr = b[0] - a[0], dc = b[1] - a[1];
+  const len = Math.max(Math.abs(dr), Math.abs(dc));
+  if (len === 0) return [a];
+  // ajusta a una de las 8 direcciones
+  const ang = Math.atan2(dr, dc), step = Math.round(ang / (Math.PI / 4));
+  const sr = Math.round(Math.sin(step * Math.PI / 4)), sc = Math.round(Math.cos(step * Math.PI / 4));
+  const out = [];
+  for (let i = 0; i <= len; i++) {
+    const r = a[0] + sr * i, c = a[1] + sc * i;
+    if (r < 0 || c < 0 || r >= puzzle.size || c >= puzzle.size) break;
+    out.push([r, c]);
+  }
+  return out;
+}
+function showSel(cells) {
+  document.querySelectorAll('.cell.sel').forEach(e => e.classList.remove('sel'));
+  cells.forEach(([r, c]) => cellEl(r, c).classList.add('sel'));
+}
+const boardEl = $('board');
+boardEl.addEventListener('pointerdown', e => {
+  if (!puzzle) return;
+  const cell = cellFromPoint(e.clientX, e.clientY); if (!cell) return;
+  boardEl.setPointerCapture(e.pointerId);
+  sel = { start: cell, cells: [cell] }; showSel(sel.cells); SJ.sfx.tick();
+});
+boardEl.addEventListener('pointermove', e => {
+  if (!sel) return;
+  const cell = cellFromPoint(e.clientX, e.clientY); if (!cell) return;
+  const cells = lineCells(sel.start, cell);
+  if (cells.length !== sel.cells.length) SJ.sfx.tick();
+  sel.cells = cells; showSel(cells);
+});
+function endSel() {
+  if (!sel) return;
+  const cells = sel.cells; sel = null;
+  if (cells.length < 2) { showSel([]); return; }
+  const key = cells.map(([r, c]) => r + ',' + c).join('|');
+  const keyRev = [...cells].reverse().map(([r, c]) => r + ',' + c).join('|');
+  const hit = puzzle.placed.find(p => !found.has(p.word) && (p.cells.map(([r, c]) => r + ',' + c).join('|') === key || p.cells.map(([r, c]) => r + ',' + c).join('|') === keyRev));
+  // también acepta la palabra si coincide el texto (por si aparece duplicada por azar)
+  const text = cells.map(([r, c]) => puzzle.grid[r][c]).join('');
+  const textHit = hit || puzzle.placed.find(p => !found.has(p.word) && (p.word === text || p.word === [...text].reverse().join('')));
+  if (textHit) { onFound(textHit, cells); }
+  else { onMiss(); }
+}
+boardEl.addEventListener('pointerup', endSel);
+boardEl.addEventListener('pointercancel', () => { sel = null; showSel([]); });
+
+function onFound(p, cells) {
+  found.add(p.word);
+  paintFound({ word: p.word, cells });
+  showSel([]);
+  const chip = document.querySelector(`.word[data-w="${p.word}"]`);
+  chip.classList.add('flash'); setTimeout(() => { chip.classList.remove('flash'); chip.classList.add('got'); }, 650);
+  updateProgress();
+  const done = found.size === puzzle.words.length;
+  const [txt, mood] = done ? ['¡Caso cerrado!', 'hype'] : GOOD[Math.floor(Math.random() * GOOD.length)];
+  toast(txt, 'good'); SJ.sfx.success(); SJ.say(txt, mood);
+  const rect = cellEl(cells[Math.floor(cells.length / 2)][0], cells[Math.floor(cells.length / 2)][1]).getBoundingClientRect();
+  burst(rect.left + rect.width / 2, rect.top + rect.height / 2, done ? 160 : 50);
+  if (navigator.vibrate) try { navigator.vibrate(40); } catch (e) {}
+  saveProgress();
+  if (done) finish(); else publish();
+}
+function onMiss() {
+  boardEl.classList.remove('bad'); void boardEl.offsetWidth; boardEl.classList.add('bad');
+  const [txt, mood] = BAD[Math.floor(Math.random() * BAD.length)];
+  toast(txt, 'bad'); SJ.sfx.error(); SJ.say(txt, mood);
+  if (navigator.vibrate) try { navigator.vibrate([60, 40, 60]); } catch (e) {}
+  setTimeout(() => { boardEl.classList.remove('bad'); showSel([]); }, 450);
+}
+function finish() {
+  finished = true;
+  const secs = Math.floor((Date.now() - startTime) / 1000);
+  me.time = secs; publish();
+  setTimeout(() => {
+    SJ.sfx.win();
+    $('finAv').innerHTML = SJ.avatarSVG(look, 120);
+    $('finTxt').textContent = `${look.title} ${me.nick}, encontraste las ${puzzle.words.length} palabras en ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}. Mira el tablero.`;
+    $('finish').classList.add('on');
+    for (let i = 0; i < 4; i++) setTimeout(() => burst(innerWidth * Math.random(), innerHeight * .4 * Math.random(), 90), i * 300);
+  }, 900);
+}
+function saveProgress() { SJ.store.set('progress', { round: config.round, nick: me.nick, found: [...found], start: startTime }); }
+
+/* ---------- efectos ---------- */
+function toast(t, kind) {
+  document.querySelectorAll('.toast').forEach(e => e.remove());
+  const d = document.createElement('div'); d.className = 'toast ' + kind; d.textContent = t;
+  document.body.appendChild(d); setTimeout(() => d.remove(), 1500);
+}
+const fx = $('fx'), fctx = fx.getContext('2d'); let parts = [];
+function sizeFx() { fx.width = innerWidth * devicePixelRatio; fx.height = innerHeight * devicePixelRatio; fctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0); }
+addEventListener('resize', sizeFx); sizeFx();
+const COLS = ['#C4B5FD', '#F0ABFC', '#8B5CF6', '#F5C542', '#FFFFFF', '#A78BFA', '#34D399'];
+function burst(x, y, n) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, s = 3 + Math.random() * 7;
+    parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 4, life: 60 + Math.random() * 40, c: COLS[i % COLS.length], w: 4 + Math.random() * 6, rot: Math.random() * 6 });
+  }
+  if (parts.length === n) requestAnimationFrame(loop);
+}
+function loop() {
+  fctx.clearRect(0, 0, innerWidth, innerHeight);
+  parts = parts.filter(p => p.life > 0);
+  parts.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += .25; p.vx *= .98; p.life--; p.rot += .2; fctx.save(); fctx.globalAlpha = Math.min(1, p.life / 30); fctx.translate(p.x, p.y); fctx.rotate(p.rot); fctx.fillStyle = p.c; fctx.fillRect(-p.w / 2, -p.w / 4, p.w, p.w / 2); fctx.restore(); });
+  if (parts.length) requestAnimationFrame(loop);
+}
+
+/* ---------- tiempo real ---------- */
+function publish() {
+  if (!client || !client.connected || !joined || !puzzle) return;
+  const data = { id: me.id, nick: me.nick, look, found: found.size, total: puzzle.words.length, done: finished, time: finished ? me.time : null, start: startTime, round: config.round, ts: Date.now() };
+  client.publish(SJ.BASE + '/p/' + me.id, JSON.stringify(data), { retain: true, qos: 1 });
+}
+function setNet(s) { $('netDot').className = 'dot ' + s; $('netTxt').textContent = { online: 'en vivo', reconnect: 'reconectando', offline: 'sin conexión', error: 'error de red' }[s] || s; if (s === 'online') publish(); }
+client = SJ.connect((topic, data) => {
+  if (topic === 'config' && data && data.words && data.words.length) {
+    const changed = !config || config.round !== data.round;
+    config = data;
+    if (joined && changed) {
+      if (puzzle) { toast('¡Nueva ronda!', 'good'); SJ.say('¡Nueva ronda!', 'hype'); $('finish').classList.remove('on'); }
+      startRound(true);
+    }
+  }
+}, setNet);
+client.on('connect', () => client.subscribe(SJ.BASE + '/config', { qos: 1 }));
+</script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1A0B2E">
+<title>Tablero Sopa Jurídica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+body{min-height:100vh}
+header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:16px 20px}
+header h1{font-size:clamp(1.6rem,3vw,2.6rem)}
+header .sp{flex:1}
+.count{font-size:1.1rem;font-weight:600;background:var(--card);padding:.4rem 1rem;border-radius:999px}
+.count b{color:var(--rosa);font-size:1.4rem}
+main{display:grid;grid-template-columns:1fr 320px;gap:16px;padding:0 20px 20px}
+@media (max-width:900px){main{grid-template-columns:1fr}}
+.panel{background:var(--card);border:2px solid var(--line);border-radius:22px;padding:14px}
+.panel h3{color:var(--lila);font-size:1rem;margin-bottom:10px}
+aside{display:flex;flex-direction:column;gap:14px}
+.qr{background:#fff;border-radius:16px;padding:10px;display:flex;justify-content:center;cursor:zoom-in}
+.qr svg{width:100%;height:auto;max-width:240px;display:block}
+.qrtxt{font-size:.85rem;color:var(--muted);text-align:center;margin-top:8px;word-break:break-all}
+.inp{width:100%;background:var(--bg2);border:2px solid var(--line);border-radius:12px;padding:.55rem .8rem;color:var(--txt);font-size:.95rem;outline:none;margin-bottom:8px}
+.inp:focus{border-color:var(--lila)}
+textarea.inp{min-height:110px;resize:vertical}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.btns .btn{font-size:.9rem;padding:.55rem 1rem}
+/* jugadores */
+.podium{display:flex;justify-content:center;align-items:flex-end;gap:14px;margin-bottom:14px;min-height:0}
+.pod{text-align:center;animation:pop .6s}
+.pod .base{border-radius:14px 14px 0 0;background:linear-gradient(180deg,var(--morado),#5B21B6);margin-top:6px;display:flex;align-items:flex-start;justify-content:center;padding-top:6px;font-size:1.6rem;font-weight:700}
+.pod.p1 .base{height:90px;background:linear-gradient(180deg,#F5C542,#B7860B);color:#3b2600}
+.pod.p2 .base{height:64px;background:linear-gradient(180deg,#DDD6FE,#A78BFA);color:#2E1065}
+.pod.p3 .base{height:48px;background:linear-gradient(180deg,#F0ABFC,#C026D3)}
+.pod .n{font-weight:600;max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.players{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.pl{position:relative;background:var(--card2);border:2px solid var(--line);border-radius:20px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;animation:pop .6s;transition:border-color .3s,transform .3s}
+.pl.done{border-color:var(--oro);box-shadow:0 0 22px rgba(245,197,66,.35)}
+.pl.bump{transform:scale(1.07)}
+.pl .rank{position:absolute;top:8px;left:10px;font-weight:700;color:var(--muted)}
+.pl .nm{font-weight:600;font-size:1.05rem;text-align:center;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl .bar{width:100%;height:10px;background:rgba(255,255,255,.1);border-radius:9px;overflow:hidden}
+.pl .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--morado),var(--rosa));transition:width .6s}
+.pl.done .bar i{background:linear-gradient(90deg,#F5C542,#FDE68A)}
+.pl .meta{font-size:.85rem;color:var(--muted)}
+.pl .x{position:absolute;top:6px;right:8px;background:none;color:var(--muted);font-size:1rem;opacity:0}
+.pl:hover .x{opacity:1}
+.empty{color:var(--muted);text-align:center;padding:40px 10px;font-size:1.2rem}
+.empty div{animation:bob 2s infinite;display:inline-block}
+#zoom{position:fixed;inset:0;background:rgba(26,11,46,.94);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:90;cursor:zoom-out;padding:20px}
+#zoom.on{display:flex}
+#zoom .qr{cursor:zoom-out;padding:24px}
+#zoom .qr svg{max-width:min(70vh,90vw);width:min(70vh,90vw)}
+#zoom p{font-size:clamp(1.2rem,3vw,2.2rem);margin-top:16px;text-align:center;font-weight:600}
+.feed{position:fixed;left:20px;bottom:20px;display:flex;flex-direction:column;gap:6px;z-index:50;pointer-events:none}
+.feed div{background:var(--card2);border:2px solid var(--lila);padding:.5rem 1rem;border-radius:999px;animation:pop .5s;font-weight:500}
+</style>
+</head>
+<body>
+<header>
+  <h1 class="title">Sopa Jurídica · Tablero</h1>
+  <span class="pill"><span class="dot" id="netDot"></span><span id="netTxt">conectando</span></span>
+  <span class="pill">Sala: <b id="sala"></b></span>
+  <span class="sp"></span>
+  <span class="count"><b id="cnt">0</b> jugadores</span>
+  <button class="btn" id="sound">Activar sonido</button>
+  <button class="btn ghost" id="fs">Pantalla completa</button>
+</header>
+<main>
+  <section>
+    <div class="podium" id="podium"></div>
+    <div class="players" id="players"></div>
+    <div class="empty" id="empty"><div>⚖</div><br>Esperando abogados... escaneen el QR para entrar</div>
+  </section>
+  <aside>
+    <div class="panel">
+      <h3>1 · Entra al juego</h3>
+      <div class="qr" id="qrGame" data-label=""></div>
+      <div class="qrtxt" id="gameUrl"></div>
+    </div>
+    <div class="panel">
+      <h3>2 · ¿Sin datos? Conéctate al WiFi</h3>
+      <div class="qr" id="qrWifi"></div>
+      <div class="qrtxt" id="wifiTxt"></div>
+      <div style="margin-top:10px">
+        <input class="inp" id="ssid" placeholder="Nombre de la red (SSID)">
+        <input class="inp" id="pass" placeholder="Contraseña">
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Palabras de la ronda</h3>
+      <textarea class="inp" id="wordsIn" placeholder="Una palabra por línea o separadas por coma"></textarea>
+      <div class="btns">
+        <button class="btn" id="newRound">Nueva ronda</button>
+        <button class="btn ghost" id="clear">Borrar jugadores</button>
+      </div>
+      <div class="qrtxt" id="roundInfo"></div>
+    </div>
+  </aside>
+</main>
+<div id="zoom"><div class="qr" id="zoomQr"></div><p id="zoomTxt"></p></div>
+<div class="feed" id="feed"></div>
+
+<script src="mqtt.min.js"></script>
+<script src="qrcode.js"></script>
+<script src="common.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+$('sala').textContent = SJ.SALA;
+let soundOn = false, config = null, players = {}, client;
+
+/* ---------- QR ---------- */
+function qrSVG(text) {
+  const q = qrcode(0, 'M'); q.addData(unescape(encodeURIComponent(text))); q.make();
+  return q.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
+}
+const GAME_URL = SJ.gameURL();
+$('qrGame').innerHTML = qrSVG(GAME_URL);
+$('gameUrl').textContent = GAME_URL;
+$('qrGame').dataset.label = GAME_URL;
+const wesc = s => s.replace(/([\\;,:"])/g, '\\$1');
+function renderWifi() {
+  const ssid = $('ssid').value.trim(), pass = $('pass').value;
+  SJ.store.set('wifi', { ssid, pass });
+  if (!ssid) { $('qrWifi').innerHTML = '<div style="color:#5B3E96;padding:40px 10px;text-align:center">Escribe la red abajo</div>'; $('wifiTxt').textContent = ''; return; }
+  const str = `WIFI:T:${pass ? 'WPA' : 'nopass'};S:${wesc(ssid)};${pass ? 'P:' + wesc(pass) + ';' : ''};`;
+  $('qrWifi').innerHTML = qrSVG(str);
+  $('wifiTxt').textContent = `Red: ${ssid}${pass ? ' · Clave: ' + pass : ''}`;
+  $('qrWifi').dataset.label = `WiFi: ${ssid}${pass ? ' · ' + pass : ''}`;
+}
+const wifi = SJ.store.get('wifi') || {};
+const qp = SJ.params;
+$('ssid').value = qp.get('ssid') || wifi.ssid || '';
+$('pass').value = qp.get('pass') || wifi.pass || '';
+$('ssid').oninput = $('pass').oninput = renderWifi; renderWifi();
+document.querySelectorAll('aside .qr').forEach(el => el.onclick = () => {
+  if (!el.querySelector('svg')) return;
+  $('zoomQr').innerHTML = el.innerHTML; $('zoomTxt').textContent = el.dataset.label || ''; $('zoom').classList.add('on');
+});
+$('zoom').onclick = () => $('zoom').classList.remove('on');
+
+/* ---------- controles ---------- */
+$('sound').onclick = () => { soundOn = !soundOn; $('sound').textContent = soundOn ? 'Sonido activo' : 'Activar sonido'; if (soundOn) { SJ.sfx.join(); SJ.say('Sonido activado. ¡Que empiece el juicio!', 'happy'); } };
+$('fs').onclick = () => { try { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); } catch (e) {} };
+function parseWords() {
+  return [...new Set($('wordsIn').value.split(/[\n,;]+/).map(w => SJ.normWord(w.trim())).filter(w => w.length >= 2 && w.length <= 13))].slice(0, 14);
+}
+function publishConfig(words) {
+  config = { round: 'r' + Date.now().toString(36), words, ts: Date.now() };
+  client.publish(SJ.BASE + '/config', JSON.stringify(config), { retain: true, qos: 1 });
+  showConfig();
+}
+function clearPlayers() {
+  Object.keys(players).forEach(id => client.publish(SJ.BASE + '/p/' + id, '', { retain: true, qos: 1 }));
+  players = {}; render();
+}
+$('newRound').onclick = () => {
+  const w = parseWords(); if (w.length < 3) { alertFeed('Pon al menos 3 palabras'); return; }
+  clearPlayers(); publishConfig(w); alertFeed('Nueva ronda iniciada'); if (soundOn) SJ.say('¡Nueva ronda!', 'hype');
+};
+$('clear').onclick = clearPlayers;
+function showConfig() {
+  if (!config) return;
+  $('wordsIn').value = config.words.join('\n');
+  $('roundInfo').textContent = `${config.words.length} palabras · ronda ${config.round}`;
+}
+
+/* ---------- render ---------- */
+function sorted() {
+  return Object.values(players).filter(p => !config || p.round === config.round)
+    .sort((a, b) => (b.done - a.done) || (a.done && b.done ? a.time - b.time : 0) || (b.found - a.found) || (a.ts - b.ts));
+}
+const fmt = s => s == null ? '' : Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+function render() {
+  const list = sorted();
+  $('cnt').textContent = list.length;
+  $('empty').style.display = list.length ? 'none' : 'block';
+  const container = $('players');
+  const ids = new Set(list.map(p => p.id));
+  [...container.children].forEach(el => { if (!ids.has(el.dataset.id)) el.remove(); });
+  list.forEach((p, i) => {
+    let el = container.querySelector(`[data-id="${p.id}"]`);
+    if (!el) { el = document.createElement('div'); el.className = 'pl'; el.dataset.id = p.id; el.innerHTML = `<span class="rank"></span><button class="x" title="Quitar">✕</button><div class="av"></div><div class="nm"></div><div class="bar"><i></i></div><div class="meta"></div>`; el.querySelector('.x').onclick = () => { client.publish(SJ.BASE + '/p/' + p.id, '', { retain: true, qos: 1 }); }; }
+    el.querySelector('.rank').textContent = '#' + (i + 1);
+    const avKey = JSON.stringify(p.look);
+    if (el.dataset.av !== avKey) { el.querySelector('.av').innerHTML = SJ.avatarSVG(p.look || SJ.randomLook(p.id), 84); el.dataset.av = avKey; }
+    el.querySelector('.nm').textContent = (p.look && p.look.title ? p.look.title + ' ' : '') + p.nick;
+    el.querySelector('.bar i').style.width = (p.found / p.total * 100) + '%';
+    el.querySelector('.meta').textContent = p.done ? `🏆 ${p.total}/${p.total} en ${fmt(p.time)}` : `${p.found}/${p.total} palabras`;
+    el.classList.toggle('done', !!p.done);
+    if (container.children[i] !== el) container.insertBefore(el, container.children[i] || null);
+  });
+  const top = list.filter(p => p.done).slice(0, 3);
+  const order = [top[1], top[0], top[2]];
+  $('podium').innerHTML = top.length ? order.map((p, k) => p ? `<div class="pod p${[2, 1, 3][k]}">${SJ.avatarSVG(p.look, [70, 96, 62][k])}<div class="n">${SJ.esc(p.nick)}</div><div class="base">${[2, 1, 3][k]}</div></div>` : '').join('') : '';
+}
+function alertFeed(t) {
+  const d = document.createElement('div'); d.textContent = t; $('feed').appendChild(d);
+  setTimeout(() => d.remove(), 4000);
+}
+function bump(id) { const el = document.querySelector(`.pl[data-id="${id}"]`); if (el) { el.classList.add('bump'); setTimeout(() => el.classList.remove('bump'), 300); } }
+
+/* ---------- tiempo real ---------- */
+function setNet(s) { $('netDot').className = 'dot ' + s; $('netTxt').textContent = { online: 'en vivo', reconnect: 'reconectando', offline: 'sin conexión', error: 'error de red' }[s] || s; }
+let gotConfig = false;
+client = SJ.connect((topic, data) => {
+  if (topic === 'config') { if (data && data.words) { config = data; gotConfig = true; showConfig(); render(); } return; }
+  if (!topic.startsWith('p/')) return;
+  const id = topic.slice(2);
+  if (!data) { delete players[id]; render(); return; }
+  if (!data.nick || typeof data.found !== 'number') return;
+  const prev = players[id];
+  data.nick = String(data.nick).slice(0, 16);
+  players[id] = data;
+  render();
+  if (config && data.round !== config.round) return;
+  if (!prev) { alertFeed(`${data.nick} entró a la sala`); if (soundOn) { SJ.sfx.join(); SJ.say(`Se unió ${data.nick}`, 'happy'); } }
+  else if (data.found > prev.found) { bump(id); if (data.done && !prev.done) { alertFeed(`🏆 ${data.nick} terminó en ${fmt(data.time)}`); if (soundOn) { SJ.sfx.win(); SJ.say(`¡${data.nick} cerró el caso!`, 'hype'); } } else if (soundOn) SJ.sfx.tick(); }
+}, setNet);
+client.on('connect', () => {
+  client.subscribe([SJ.BASE + '/config', SJ.BASE + '/p/+'], { qos: 1 });
+  setTimeout(() => { if (!gotConfig) { $('wordsIn').value = SJ.DEFAULT_WORDS.join('\n'); publishConfig(SJ.DEFAULT_WORDS); } }, 2500);
+});
+</script>
+</body>
+</html>

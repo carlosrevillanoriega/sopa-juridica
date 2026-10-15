@@ -1,0 +1,25 @@
+:root{
+  --bg:#1A0B2E;--bg2:#2A1250;--card:#2F1A55;--card2:#3B2270;--line:#5B3E96;
+  --lila:#C4B5FD;--lila2:#DDD6FE;--morado:#8B5CF6;--morado2:#7C3AED;--rosa:#F0ABFC;
+  --txt:#F5F3FF;--muted:#B8A9DE;--ok:#34D399;--err:#FB7185;--oro:#F5C542;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'Fredoka',system-ui,sans-serif;color:var(--txt);
+  background:radial-gradient(1200px 700px at 10% -10%,#4C1D95 0%,transparent 60%),radial-gradient(900px 600px at 110% 110%,#6D28D9 0%,transparent 55%),var(--bg);
+  background-attachment:fixed;-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+button{font-family:inherit;cursor:pointer;border:0}
+input,textarea{font-family:inherit}
+.btn{background:linear-gradient(135deg,var(--morado),#A855F7);color:#fff;font-weight:600;font-size:1.05rem;padding:.8rem 1.4rem;border-radius:999px;box-shadow:0 6px 0 #4C1D95,0 10px 24px rgba(139,92,246,.45);transition:transform .1s,box-shadow .1s}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #4C1D95}
+.btn.ghost{background:transparent;border:2px solid var(--line);box-shadow:none;color:var(--lila2)}
+.btn:disabled{opacity:.5}
+.pill{display:inline-flex;align-items:center;gap:.4rem;font-size:.8rem;padding:.25rem .7rem;border-radius:999px;background:rgba(196,181,253,.15);color:var(--lila2)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.dot.online{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.dot.offline,.dot.error{background:var(--err)}
+.title{font-weight:700;letter-spacing:.5px;background:linear-gradient(90deg,var(--lila2),var(--rosa));-webkit-background-clip:text;background-clip:text;color:transparent}
+@keyframes pop{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.15);opacity:1}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+@keyframes floatUp{0%{transform:translate(-50%,-30%) scale(.4) rotate(-8deg);opacity:0}25%{transform:translate(-50%,-50%) scale(1.15) rotate(3deg);opacity:1}70%{transform:translate(-50%,-55%) scale(1) rotate(0);opacity:1}100%{transform:translate(-50%,-120%) scale(.9);opacity:0}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
