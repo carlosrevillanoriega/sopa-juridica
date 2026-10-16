@@ -185,6 +185,8 @@ const SJ = (() => {
     success() { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.08, 0.25, 'triangle', 0.2)); tone(1568, 0.34, 0.35, 'sine', 0.08); },
     error() { tone(220, 0, 0.18, 'sawtooth', 0.12, 150); tone(160, 0.16, 0.28, 'sawtooth', 0.12, 90); },
     join() { tone(660, 0, 0.12, 'sine', 0.15); tone(990, 0.1, 0.18, 'sine', 0.15); },
+    beep() { tone(660, 0, 0.18, 'square', 0.14); },
+    go() { tone(880, 0, 0.12, 'square', 0.14); tone(1320, 0.1, 0.45, 'square', 0.14); tone(660, 0.1, 0.45, 'triangle', 0.12); },
     win() { [523, 659, 784, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i * 0.11, 0.3, 'square', 0.09)); }
   };
 
@@ -291,6 +293,22 @@ const SJ = (() => {
   }
   function nextSay() { if (speaking) return; const n = sq.shift(); if (n) say(n[0], n[1], true); }
 
+  /* ---------- cuenta regresiva sincronizada ---------- */
+  const CD_STEPS = [[4000, '¿Listos?', '¿Listos?'], [3000, '3', 'Tres'], [2000, '2', 'Dos'], [1000, '1', 'Uno'], [0, '¡Comienza!', '¡Comienza!']];
+  function countdown(remaining, onStep, onGo) {
+    const timers = [];
+    if (remaining < 50) { onStep('¡Comienza!', true); onGo && onGo(); return () => {}; }
+    CD_STEPS.forEach(([t, txt, spoken], i) => {
+      if (remaining < t) return;
+      timers.push(setTimeout(() => {
+        onStep(txt, t === 0);
+        if (t === 0) { sfx.go(); say(spoken, 'hype'); onGo && onGo(); }
+        else { if (i > 0) sfx.beep(); say(spoken, i === 0 ? 'calm' : 'hype'); }
+      }, remaining - t));
+    });
+    return () => timers.forEach(clearTimeout);
+  }
+
   /* ---------- ranking ---------- */
   function rank(list) {
     return [...list].sort((a, b) =>
@@ -306,11 +324,11 @@ const SJ = (() => {
     client.on('reconnect', () => onStatus && onStatus('reconnect'));
     client.on('offline', () => onStatus && onStatus('offline'));
     client.on('error', () => onStatus && onStatus('error'));
-    client.on('message', (topic, payload) => {
+    client.on('message', (topic, payload, packet) => {
       let data = null;
       const s = payload.toString();
       if (s) { try { data = JSON.parse(s); } catch (e) { return; } }
-      onMsg(topic.slice(BASE.length + 1), data);
+      onMsg(topic.slice(BASE.length + 1), data, !!(packet && packet.retain));
     });
     return client;
   }
@@ -325,5 +343,5 @@ const SJ = (() => {
     return u.href.replace(/index\.html(?=$|\?)/, '');
   }
 
-  return { BASE, SALA, DEFAULT_WORDS, store, rng, normWord, buildPuzzle, HATS, SKINS, BGS, FACES, ACCS, PROPS, randomLook, avatarSVG, sfx, say, sayQ, rank, TRACKS, music, musicPlay, musicStop, connect, esc, gameURL, params };
+  return { BASE, SALA, DEFAULT_WORDS, store, rng, normWord, buildPuzzle, HATS, SKINS, BGS, FACES, ACCS, PROPS, randomLook, avatarSVG, sfx, say, sayQ, countdown, CD_MS: 4500, rank, TRACKS, music, musicPlay, musicStop, connect, esc, gameURL, params };
 })();

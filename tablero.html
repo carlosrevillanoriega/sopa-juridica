@@ -17,6 +17,19 @@ header .sp{flex:1}
 .count b{color:var(--rosa);font-size:1.4rem}
 header .btn{font-size:.9rem;padding:.55rem 1rem}
 .sel{background:var(--card);color:var(--txt);border:2px solid var(--line);border-radius:999px;padding:.5rem .9rem;font-family:inherit;font-size:.9rem;outline:none}
+.btn.start{background:linear-gradient(135deg,#22C55E,#8B5CF6);box-shadow:0 6px 0 #14532D,0 0 24px rgba(34,197,94,.5);font-size:1.05rem!important;padding:.65rem 1.4rem!important;animation:pulse 1.4s infinite}
+.btn.start:disabled{animation:none;background:var(--card2);box-shadow:none;opacity:.7}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+#lobbyBar{display:none;text-align:center;padding:14px;margin-bottom:10px;border-radius:20px;border:2px dashed var(--lila);background:rgba(196,181,253,.08);font-size:1.3rem;font-weight:600}
+#lobbyBar.on{display:block}
+#lobbyBar small{display:block;font-size:.95rem;color:var(--muted);font-weight:400;margin-top:4px}
+#cd{position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;background:rgba(26,11,46,.85);pointer-events:none}
+#cd.on{display:flex}
+#cdTxt{font-size:clamp(6rem,24vw,18rem);font-weight:700;color:#fff;text-shadow:0 10px 0 #4C1D95,0 0 80px rgba(240,171,252,.9);line-height:1;text-align:center}
+#cdTxt.small{font-size:clamp(4rem,12vw,10rem)}
+#cdTxt.go{color:#FDE047;text-shadow:0 10px 0 #7C2D12,0 0 80px #F97316}
+#cdTxt.anim{animation:cdPop .9s cubic-bezier(.2,1.6,.4,1)}
+@keyframes cdPop{0%{transform:scale(2.6);opacity:0}35%{transform:scale(.9);opacity:1}55%{transform:scale(1.05)}100%{transform:scale(1)}}
 .btn.warn{background:linear-gradient(135deg,#F43F5E,#BE185D);box-shadow:0 6px 0 #881337}
 main{display:grid;grid-template-columns:1fr 310px;gap:16px;padding:0 20px 20px}
 @media (max-width:900px){main{grid-template-columns:1fr}}
@@ -102,11 +115,13 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:75}
     <option value="montana">Rey de la Montaña (tensión)</option>
     <option value="galope">Galope final (carrera)</option>
   </select>
+  <button class="btn start" id="start">Iniciar juego</button>
   <button class="btn warn" id="restart">Reiniciar juego</button>
   <button class="btn ghost" id="fs">Pantalla completa</button>
 </header>
 <main>
   <section>
+    <div id="lobbyBar"></div>
     <div id="duel"></div>
     <div class="podium" id="podium"></div>
     <div class="players" id="players"></div>
@@ -140,6 +155,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:75}
 </main>
 <div id="zoom"><div class="qr" id="zoomQr"></div><p id="zoomTxt"></p></div>
 <div id="announce"></div>
+<div id="cd"><div id="cdTxt"></div></div>
 <div class="feed" id="feed"></div>
 <canvas id="fx"></canvas>
 
@@ -189,9 +205,9 @@ function parseWords() {
   return [...new Set($('wordsIn').value.split(/[\n,;]+/).map(w => SJ.normWord(w.trim())).filter(w => w.length >= 2 && w.length <= 13))].slice(0, 14);
 }
 function publishConfig(words) {
-  config = { round: 'r' + Date.now().toString(36), words, ts: Date.now() };
+  config = { round: 'r' + Date.now().toString(36), words, ts: Date.now(), state: 'lobby' };
   client.publish(SJ.BASE + '/config', JSON.stringify(config), { retain: true, qos: 1 });
-  showConfig(); resetState();
+  showConfig(); resetState(); updateStart();
 }
 function clearPlayers() {
   Object.keys(players).forEach(id => client.publish(SJ.BASE + '/p/' + id, '', { retain: true, qos: 1 }));
@@ -211,6 +227,29 @@ $('restart').onclick = () => {
   announce('¡Juego reiniciado!'); if (soundOn) SJ.sayQ('¡Juego reiniciado! Todos a sus lugares. Se abre la audiencia.', 'hype', 3);
 };
 $('clear').onclick = clearPlayers;
+function updateStart() {
+  const lobby = config && config.state === 'lobby';
+  $('start').disabled = !lobby;
+  $('start').textContent = lobby ? 'Iniciar juego' : 'En juego';
+  const n = sorted().length;
+  $('lobbyBar').classList.toggle('on', !!lobby);
+  $('lobbyBar').innerHTML = `Sala de espera: ${n} ${n === 1 ? 'abogado listo' : 'abogados listos'}<small>Escaneen el QR para entrar. Cuando estén todos, presiona "Iniciar juego".</small>`;
+}
+$('start').onclick = () => {
+  if (!config || config.state !== 'lobby') return;
+  config = { ...config, state: 'countdown', startAt: Date.now() + SJ.CD_MS, ts: Date.now() };
+  client.publish(SJ.BASE + '/config', JSON.stringify(config), { retain: true, qos: 1 });
+  updateStart();
+  SJ.countdown(SJ.CD_MS, (txt, go) => {
+    $('cd').classList.add('on');
+    const el = $('cdTxt'); el.textContent = txt; el.className = (txt.length > 2 ? 'small ' : '') + (go ? 'go ' : '');
+    void el.offsetWidth; el.classList.add('anim');
+  }, () => {
+    setTimeout(() => $('cd').classList.remove('on'), 900);
+    for (let i = 0; i < 4; i++) setTimeout(() => burst(innerWidth * (.2 + .6 * Math.random()), innerHeight * .4, 100), i * 200);
+    if (SJ.music.on && SJ.music.id) SJ.musicPlay(SJ.music.id);
+  });
+};
 function showConfig() {
   if (!config) return;
   $('wordsIn').value = config.words.join('\n');
@@ -354,16 +393,16 @@ function events(id, data, prev, before) {
 function setNet(s) { $('netDot').className = 'dot ' + s; $('netTxt').textContent = { online: 'en vivo', reconnect: 'reconectando', offline: 'sin conexión', error: 'error de red' }[s] || s; }
 let gotConfig = false, ready = false;
 client = SJ.connect((topic, data) => {
-  if (topic === 'config') { if (data && data.words) { if (config && config.round !== data.round) resetState(); config = data; gotConfig = true; showConfig(); render(); } return; }
+  if (topic === 'config') { if (data && data.words) { if (config && config.round !== data.round) resetState(); config = data; gotConfig = true; if (!data.state) { publishConfig(data.words); return; } showConfig(); render(); updateStart(); } return; }
   if (!topic.startsWith('p/')) return;
   const id = topic.slice(2);
-  if (!data) { delete players[id]; render(); return; }
+  if (!data) { delete players[id]; render(); updateStart(); return; }
   if (!data.nick || typeof data.found !== 'number') return;
   const prev = players[id] && (!config || players[id].round === config.round) ? players[id] : null;
   const before = sorted().map(p => p.id);
   data.nick = String(data.nick).slice(0, 50);
   players[id] = data;
-  render();
+  render(); updateStart();
   if (config && data.round !== config.round) return;
   if (ready) events(id, data, prev, before);
 }, setNet);
