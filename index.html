@@ -32,6 +32,12 @@
 .top .nick{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bar{height:8px;background:rgba(255,255,255,.1);border-radius:9px;overflow:hidden;margin-top:4px}
 .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--morado),var(--rosa));transition:width .5s}
+.segbar{display:grid;gap:2px;height:10px;margin-top:5px}
+.segbar i{border-radius:3px;background:rgba(255,255,255,.12)}
+.segbar i.on{background:linear-gradient(180deg,#C084FC,#7C3AED);animation:segIn .45s cubic-bezier(.2,1.6,.4,1)}
+.segbar.fire i.on{background:linear-gradient(180deg,#FDE047,#F97316 55%,#DC2626)}
+.segbar.done i.on{background:linear-gradient(180deg,#FDE68A,#F5C542)}
+@keyframes segIn{from{transform:scaleY(.2)}to{transform:none}}
 .clock{font-variant-numeric:tabular-nums;font-weight:600;color:var(--lila2)}
 .board{position:relative;width:100%;touch-action:none;user-select:none;-webkit-user-select:none;background:linear-gradient(160deg,#3B2270,#2A1250);border-radius:20px;padding:8px;box-shadow:inset 0 0 0 2px var(--line),0 12px 30px rgba(0,0,0,.35)}
 .grid{display:grid;gap:3px}
@@ -106,7 +112,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:40}
 <section id="game" class="screen">
   <div class="top">
     <div id="meAv"></div>
-    <div class="who"><div class="nick" id="meNick"></div><div class="bar"><i id="prog"></i></div></div>
+    <div class="who"><div class="nick" id="meNick"></div><div class="segbar" id="prog"></div></div>
     <div class="side"><div class="clock" id="clock">0:00</div><div class="rankp" id="rankp"></div></div>
     <button class="ib" id="musBtn" title="Música">&#9835;</button>
     <button class="ib" id="rstBtn" title="Reiniciar">&#8635;</button>
@@ -265,7 +271,12 @@ function paintFound(p) {
 function drawWords() {
   $('words').innerHTML = puzzle.words.map(w => `<span class="word ${found.has(w) ? 'got' : ''}" data-w="${w}">${w}</span>`).join('');
 }
-function updateProgress() { $('prog').style.width = (found.size / puzzle.words.length * 100) + '%'; }
+function updateProgress() {
+  const pg = $('prog'), n = puzzle.words.length;
+  if (pg.children.length !== n) { pg.style.gridTemplateColumns = `repeat(${n},1fr)`; pg.innerHTML = '<i></i>'.repeat(n); }
+  [...pg.children].forEach((seg, k) => seg.classList.toggle('on', k < found.size));
+  pg.classList.toggle('done', found.size === n);
+}
 
 /* ---------- arrastre ---------- */
 let sel = null;
@@ -341,7 +352,7 @@ function onFound(p, cells) {
   saveProgress();
   if (done) finish(); else publish();
   const recent = finds.filter(t => Date.now() - t < 30000).length;
-  if (!done && recent >= 3) { boardEl.classList.add('onfire'); clearTimeout(fireT); fireT = setTimeout(() => boardEl.classList.remove('onfire'), 8000); later(() => { ticker('¡Estás arrasando!'); SJ.sayQ('¡Estás arrasando!', 'hype', 2); }, 1300); }
+  if (!done && recent >= 3) { boardEl.classList.add('onfire'); $('prog').classList.add('fire'); clearTimeout(fireT); fireT = setTimeout(() => { boardEl.classList.remove('onfire'); $('prog').classList.remove('fire'); }, 8000); later(() => { ticker('¡Estás arrasando!'); SJ.sayQ('¡Estás arrasando!', 'hype', 2); }, 1300); }
   later(rankEvents, 1500);
 }
 function onMiss() {

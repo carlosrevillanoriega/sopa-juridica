@@ -98,6 +98,67 @@ textarea.inp{min-height:110px;resize:vertical}
 #zoom p{font-size:clamp(1.2rem,3vw,2.2rem);margin-top:16px;text-align:center;font-weight:600}
 .feed{position:fixed;left:20px;bottom:14px;display:flex;flex-direction:column;gap:5px;z-index:50;pointer-events:none;max-width:min(520px,60vw)}
 .feed div{background:rgba(59,34,112,.92);border:2px solid var(--lila);padding:.35rem .9rem;border-radius:999px;animation:pop .5s;font-weight:500;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* ===== modo competencia ===== */
+.mclock,.resbtn{display:none!important}
+body.racing .mclock{display:inline-flex!important;font-size:1.05rem;font-weight:700;color:var(--oro);background:rgba(245,197,66,.12)}
+body.racing .resbtn{display:inline-block!important}
+body.racing #start,body.racing aside,body.racing #podium,body.racing #players,body.racing #lobbyBar,body.racing #empty,body.racing #fs{display:none!important}
+body.racing main{grid-template-columns:minmax(0,1fr)}
+#race{display:none;gap:8px;align-content:start}
+body.racing #race{display:grid}
+#race.cols2,#race.cols3{grid-auto-flow:column;column-gap:16px}
+#race.cols2{grid-template-columns:repeat(2,minmax(0,1fr))}
+#race.cols3{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:12px}
+.rrow .rmid{min-width:0}
+.rrow{display:grid;grid-template-columns:46px 50px 1fr 78px;align-items:center;gap:10px;background:var(--card2);border:2px solid var(--line);border-radius:16px;padding:6px 12px;position:relative}
+.rrow .pos{font-size:1.7rem;font-weight:700;text-align:center;color:var(--muted)}
+.rrow.r1{border-color:#F5C542;background:linear-gradient(90deg,rgba(245,197,66,.22),var(--card2) 45%)}.rrow.r1 .pos{color:#F5C542}
+.rrow.r2{border-color:#DDD6FE;background:linear-gradient(90deg,rgba(221,214,254,.18),var(--card2) 45%)}.rrow.r2 .pos{color:#E9E5FF}
+.rrow.r3{border-color:#F5B38A;background:linear-gradient(90deg,rgba(245,179,138,.18),var(--card2) 45%)}.rrow.r3 .pos{color:#F5B38A}
+.rrow .rav svg{width:50px;height:50px;display:block}
+.rrow .rname{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:1.02rem;margin-bottom:5px}
+.track{display:grid;gap:3px;height:18px}
+.track i{border-radius:5px;background:rgba(255,255,255,.09);position:relative}
+.track i.on{background:linear-gradient(180deg,#C084FC,#7C3AED);animation:segIn .45s cubic-bezier(.2,1.6,.4,1)}
+.rrow.done .track i.on{background:linear-gradient(180deg,#FDE68A,#F5C542)}
+.rrow.fire{border-color:#FB923C;box-shadow:0 0 22px rgba(249,115,22,.55)}
+.rrow.fire .track i.on{background:linear-gradient(180deg,#FDE047,#F97316 55%,#DC2626)}
+.rrow.fire .track i.tip::after{content:'';position:absolute;right:-7px;bottom:3px;width:18px;height:32px;background:radial-gradient(ellipse at 50% 85%,#FEF08A 0%,#FDBA74 30%,#F97316 55%,#DC2626 75%,transparent 77%);border-radius:50% 50% 40% 40%/65% 65% 35% 35%;animation:flick .4s infinite alternate;transform-origin:50% 100%;will-change:transform}
+@keyframes segIn{from{transform:scaleY(.2)}to{transform:none}}
+.rrow .rstat{text-align:right;font-weight:700;font-size:1.2rem;font-variant-numeric:tabular-nums}
+.rrow .rstat small{display:block;font-size:.72rem;color:var(--muted);font-weight:500}
+.rrow.done .rstat{color:#F5C542}
+.rrow .mv{position:absolute;left:6px;top:-10px;font-size:.75rem;font-weight:700;color:#06281c;background:var(--ok);border-radius:999px;padding:0 .45rem;opacity:0}
+.rrow.up{box-shadow:0 0 0 2px var(--ok)}
+.rrow.up .mv{animation:mvUp 1.3s}
+@keyframes mvUp{0%{opacity:0;transform:translateY(6px)}20%,80%{opacity:1;transform:none}100%{opacity:0}}
+#race.cols2 .rrow,#race.cols3 .rrow{grid-template-columns:34px 38px 1fr 58px;padding:4px 10px;gap:8px;border-radius:12px}
+#race.cols2 .rav svg,#race.cols3 .rav svg{width:38px;height:38px}
+#race.cols2 .pos,#race.cols3 .pos{font-size:1.2rem}
+#race.cols2 .rname,#race.cols3 .rname{font-size:.88rem;margin-bottom:3px}
+#race.cols2 .track,#race.cols3 .track{height:13px;gap:2px}
+#race.cols2 .rstat,#race.cols3 .rstat{font-size:.95rem}
+#race.cols2 .rrow.fire .track i.tip::after,#race.cols3 .rrow.fire .track i.tip::after{height:22px;width:14px;right:-5px;bottom:1px}
+body.racing #feed{display:none}
+body.racing #duel{padding:6px 12px;gap:14px;margin-bottom:22px;border-radius:16px}
+body.racing #duel svg{width:46px;height:46px}
+body.racing #duel .who{display:flex;align-items:center;gap:8px;max-width:none;text-align:left}
+body.racing #duel .who small{margin-left:6px;color:var(--oro);font-weight:700}
+body.racing #duel .vs{font-size:1.8rem}
+body.racing #duel .msg{font-size:.85rem;bottom:-12px}
+/* resultados finales */
+#final{position:fixed;inset:0;z-index:88;display:none;align-items:center;justify-content:center;padding:20px;background:radial-gradient(900px 600px at 50% 30%,#5B21B6 0%,transparent 70%),rgba(26,11,46,.96)}
+#final.on{display:flex}
+.fbox{text-align:center;max-width:900px;width:100%;animation:pop .6s}
+.fbox h2{font-size:clamp(2.2rem,5vw,3.8rem)}
+.fsub{color:var(--lila2);font-size:1.2rem;margin:6px 0 10px}
+.fpod .base{width:170px}
+.fpod .pod.p1 .base{height:140px}.fpod .pod.p2 .base{height:100px}.fpod .pod.p3 .base{height:76px}
+.fpod .n{max-width:190px;font-size:1.1rem}
+.frest{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:14px 0 22px}
+.frest span{background:var(--card2);border:2px solid var(--line);border-radius:999px;padding:.3rem .9rem;font-weight:500}
+.fbtns{justify-content:center}
+.fbtns .btn{font-size:1.15rem!important;padding:.8rem 1.6rem!important}
 /* modos compactos para muchos jugadores */
 .players.compact{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .players.compact .pl{padding:8px;gap:4px;border-radius:16px}
@@ -119,6 +180,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:75}
   <span class="pill"><span class="dot" id="netDot"></span><span id="netTxt">conectando</span></span>
   <span class="pill">Sala: <b id="sala"></b></span>
   <span class="sp"></span>
+  <span class="pill mclock" id="mclock"></span>
   <span class="count"><b id="cnt">0</b> jugadores</span>
   <button class="btn" id="sound">Activar voz</button>
   <select class="sel" id="music" title="Música">
@@ -128,6 +190,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:75}
     <option value="galope">Galope final (carrera)</option>
   </select>
   <button class="btn start" id="start">Iniciar juego</button>
+  <button class="btn ghost resbtn" id="results">Ver resultados</button>
   <button class="btn warn" id="restart">Reiniciar juego</button>
   <button class="btn ghost" id="fs">Pantalla completa</button>
 </header>
@@ -135,6 +198,7 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:75}
   <section>
     <div id="lobbyBar"></div>
     <div id="duel"></div>
+    <div id="race"></div>
     <div class="podium" id="podium"></div>
     <div class="players" id="players"></div>
     <div class="empty" id="empty"><div>&#9878;</div><br>Esperando abogados... escaneen el QR para entrar</div>
@@ -165,6 +229,13 @@ canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:75}
     </div>
   </aside>
 </main>
+<div id="final"><div class="fbox">
+  <h2 class="title">¡Se levanta la sesión!</h2>
+  <p class="fsub" id="fsub"></p>
+  <div class="podium fpod" id="fpod"></div>
+  <div class="frest" id="frest"></div>
+  <div class="btns fbtns"><button class="btn warn" id="fRestart">Reiniciar juego</button><button class="btn ghost" id="fClose">Ver la carrera</button></div>
+</div></div>
 <div id="zoom"><div class="qr" id="zoomQr"></div><p id="zoomTxt"></p></div>
 <div id="announce"></div>
 <div id="cd"><div id="cdTxt"></div></div>
@@ -225,7 +296,7 @@ function clearPlayers() {
   Object.keys(players).forEach(id => client.publish(SJ.BASE + '/p/' + id, '', { retain: true, qos: 1 }));
   players = {}; render();
 }
-function resetState() { streak = {}; onFire = {}; leaderId = null; lastDuel = 0; $('duel').classList.remove('on'); }
+function resetState() { streak = {}; onFire = {}; leaderId = null; lastDuel = 0; finalShown = false; $('duel').classList.remove('on'); $('final').classList.remove('on'); }
 $('newRound').onclick = () => {
   const w = parseWords(); if (w.length < 3) { alertFeed('Pon al menos 3 palabras'); return; }
   clearPlayers(); publishConfig(w); announce('¡Nueva ronda!'); if (soundOn) SJ.sayQ('¡Nueva ronda! Se abre un nuevo expediente.', 'hype', 3);
@@ -234,6 +305,9 @@ let armed = 0;
 $('restart').onclick = () => {
   if (Date.now() - armed > 3000) { armed = Date.now(); $('restart').textContent = '¿Seguro? Toca otra vez'; setTimeout(() => $('restart').textContent = 'Reiniciar juego', 3000); return; }
   armed = 0; $('restart').textContent = 'Reiniciar juego';
+  doRestart();
+};
+function doRestart() {
   const w = config ? config.words : SJ.DEFAULT_WORDS;
   clearPlayers(); publishConfig(w);
   announce('¡Juego reiniciado!'); if (soundOn) SJ.sayQ('¡Juego reiniciado! Todos a sus lugares. Se abre la audiencia.', 'hype', 3);
@@ -245,6 +319,7 @@ function updateStart() {
   $('start').textContent = lobby ? 'Iniciar juego' : 'En juego';
   const n = sorted().length;
   $('lobbyBar').classList.toggle('on', !!lobby);
+  updateMode();
   setHTML($('lobbyBar'), `Sala de espera: ${n} ${n === 1 ? 'abogado listo' : 'abogados listos'}<small>Escaneen el QR para entrar. Cuando estén todos, presiona "Iniciar juego".</small>`);
 }
 $('start').onclick = () => {
@@ -260,6 +335,7 @@ $('start').onclick = () => {
     setTimeout(() => $('cd').classList.remove('on'), 900);
     for (let i = 0; i < 4; i++) setTimeout(() => burst(innerWidth * (.2 + .6 * Math.random()), innerHeight * .4, 100), i * 200);
     if (SJ.music.on && SJ.music.id) SJ.musicPlay(SJ.music.id);
+    updateMode();
   });
 };
 function showConfig() {
@@ -293,7 +369,7 @@ function loop() {
   parts.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += .22; p.vx *= .985; p.life--; p.rot += .2; fctx.save(); fctx.globalAlpha = Math.min(1, p.life / 30); fctx.translate(p.x, p.y); fctx.rotate(p.rot); fctx.fillStyle = p.c; fctx.fillRect(-p.w / 2, -p.w / 4, p.w, p.w / 2); fctx.restore(); });
   if (parts.length) requestAnimationFrame(loop);
 }
-function cardEl(id) { return document.querySelector(`.pl[data-id="${CSS.escape(id)}"]`); }
+function cardEl(id) { return document.querySelector(`${racing ? '.rrow' : '.pl'}[data-id="${CSS.escape(id)}"]`); }
 function burstAt(id, n) { const el = cardEl(id); if (!el) return; const r = el.getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 3, n); }
 
 /* ---------- render con animación de reacomodo ---------- */
@@ -301,11 +377,91 @@ function sorted() { return SJ.rank(Object.values(players).filter(p => !config ||
 const fmt = s => s == null ? '' : Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
 let onFire = {}, streak = {};
 let renderT = null;
-function render() { if (renderT) return; renderT = setTimeout(() => { renderT = null; renderNow(); }, 180); }
+function render() { if (renderT) return; renderT = setTimeout(() => { renderT = null; renderNow(); }, racing ? 450 : 180); }
 function setHTML(el, html) { if (el._h !== html) { el._h = html; el.innerHTML = html; } }
+/* ---------- modo competencia ---------- */
+let racing = false, finalShown = false, modeT = null;
+function updateMode() {
+  clearTimeout(modeT);
+  const st = config && config.state;
+  const wait = st === 'countdown' ? (config.startAt || 0) - Date.now() - 200 : 0;
+  if (st === 'countdown' && wait > 0) modeT = setTimeout(updateMode, wait);
+  const v = st === 'countdown' && wait <= 0;
+  if (v === racing) return;
+  racing = v; document.body.classList.toggle('racing', v);
+  if (!v) $('final').classList.remove('on');
+  renderNow();
+}
+setInterval(() => {
+  if (!racing || !config) return;
+  const list = sorted(), done = list.filter(p => p.done).length;
+  const secs = Math.max(0, Math.floor((Date.now() - config.startAt) / 1000));
+  $('mclock').textContent = `Tiempo ${fmt(secs)} · ${done}/${list.length} terminaron`;
+}, 500);
+function renderRace(list) {
+  const race = $('race');
+  race.classList.toggle('cols2', list.length > 12 && list.length <= 36);
+  race.classList.toggle('cols3', list.length > 36);
+  const cols = list.length > 36 ? 3 : list.length > 12 ? 2 : 1;
+  race.style.gridTemplateRows = cols > 1 ? `repeat(${Math.ceil(list.length / cols)},auto)` : '';
+  const first = new Map();
+  [...race.children].forEach(el => first.set(el.dataset.id, el.getBoundingClientRect()));
+  const ids = new Set(list.map(p => p.id));
+  [...race.children].forEach(el => { if (!ids.has(el.dataset.id)) el.remove(); });
+  const now = Date.now();
+  list.forEach((p, i) => {
+    let el = race.querySelector(`.rrow[data-id="${CSS.escape(p.id)}"]`);
+    if (!el) {
+      el = document.createElement('div'); el.className = 'rrow'; el.dataset.id = p.id;
+      el.innerHTML = `<span class="mv">SUBE</span><div class="pos"></div><div class="rav"></div><div class="rmid"><div class="rname"></div><div class="track"></div></div><div class="rstat"></div>`;
+    }
+    if (el._pos !== i + 1) { if (el._pos && i + 1 < el._pos) el._up = true; el._pos = i + 1; el.querySelector('.pos').textContent = i + 1; }
+    const avKey = JSON.stringify(p.look);
+    if (el.dataset.av !== avKey) { el.querySelector('.rav').innerHTML = SJ.avatarSVG(p.look || SJ.randomLook(p.id), 50); el.dataset.av = avKey; }
+    if (el._nick !== p.nick) { el._nick = p.nick; el.querySelector('.rname').textContent = p.nick; }
+    const tr = el.querySelector('.track');
+    if (tr.children.length !== p.total) { tr.style.gridTemplateColumns = `repeat(${p.total},1fr)`; tr.innerHTML = '<i></i>'.repeat(p.total); }
+    [...tr.children].forEach((seg, k) => { seg.classList.toggle('on', k < p.found); seg.classList.toggle('tip', k === p.found - 1); });
+    const stat = p.done ? `${fmt(p.time)}<small>caso cerrado</small>` : `${p.found}/${p.total}<small>palabras</small>`;
+    setHTML(el.querySelector('.rstat'), stat);
+    el.classList.toggle('done', !!p.done);
+    el.classList.toggle('fire', !p.done && !!onFire[p.id] && onFire[p.id] > now);
+    ['r1', 'r2', 'r3'].forEach((c, k) => el.classList.toggle(c, i === k && p.found > 0));
+    if (race.children[i] !== el) race.insertBefore(el, race.children[i] || null);
+  });
+  [...race.children].forEach(el => {
+    const f = first.get(el.dataset.id); if (!f) return;
+    const l = el.getBoundingClientRect(), dx = f.left - l.left, dy = f.top - l.top;
+    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+      el.animate([{ transform: `translate(${dx}px,${dy}px)` }, { transform: 'translate(0,0)' }], { duration: 420, easing: 'cubic-bezier(.2,.9,.25,1)' });
+    }
+    if (el._up) { el._up = false; el.classList.remove('up'); void el.offsetWidth; el.classList.add('up'); setTimeout(() => el.classList.remove('up'), 1300); }
+  });
+  if (!finalShown && list.length && list.every(p => p.done)) { finalShown = true; setTimeout(() => showFinal(true), 1400); }
+}
+function podiumHTML(list, sz) {
+  const top = list.filter(p => p.found > 0).slice(0, 3), order = [top[1], top[0], top[2]], pl = [2, 1, 3];
+  return order.map((p, k) => p ? `<div class="pod p${pl[k]}">${SJ.avatarSVG(p.look, sz[k])}<div class="n">${SJ.esc(p.nick)}</div><div class="base">${pl[k]}°<small>${p.done ? fmt(p.time) : p.found + '/' + p.total}</small></div></div>` : '').join('');
+}
+function showFinal(auto) {
+  const list = sorted(); if (!list.length) return;
+  $('fpod').innerHTML = podiumHTML(list, [96, 130, 84]);
+  $('frest').innerHTML = list.slice(3, 15).map((p, i) => `<span>${i + 4}° ${SJ.esc(p.nick)} · ${p.done ? fmt(p.time) : p.found + '/' + p.total}</span>`).join('');
+  const done = list.filter(p => p.done).length;
+  $('fsub').textContent = done === list.length ? `Los ${list.length} abogados cerraron su caso` : `${done} de ${list.length} cerraron su caso`;
+  $('final').classList.add('on');
+  SJ.sfx.win();
+  for (let i = 0; i < 6; i++) setTimeout(() => burst(innerWidth * (.15 + .7 * Math.random()), innerHeight * .35, 110), i * 260);
+  if (list[0]) voice(`${auto ? '¡Todos cerraron su caso! ' : ''}Se levanta la sesión. El ganador del juicio es ${list[0].nick}. ¡Sentencia firme!`, 'hype', 3);
+}
+$('results').onclick = () => showFinal(false);
+$('fClose').onclick = () => $('final').classList.remove('on');
+$('fRestart').onclick = () => { $('final').classList.remove('on'); doRestart(); };
+
 function renderNow() {
   const list = sorted();
   $('cnt').textContent = list.length;
+  if (racing) { renderRace(list); musicIntensity(list); return; }
   $('empty').style.display = list.length ? 'none' : 'block';
   const container = $('players');
   container.classList.toggle('compact', list.length > 15 && list.length <= 30);
@@ -341,9 +497,10 @@ function renderNow() {
       if (dy > 2 || (dy === 0 && dx > 2)) { el.classList.add('up'); setTimeout(() => el.classList.remove('up'), 1200); }
     }
   });
-  const top = list.filter(p => p.found > 0).slice(0, 3);
-  const order = [top[1], top[0], top[2]], pl = [2, 1, 3], sz = [72, 100, 62];
-  setHTML($('podium'), order.map((p, k) => p ? `<div class="pod p${pl[k]}">${SJ.avatarSVG(p.look, sz[k])}<div class="n">${SJ.esc(p.nick)}</div><div class="base">${pl[k]}°<small>${p.done ? fmt(p.time) : p.found + '/' + p.total}</small></div></div>` : '').join(''));
+  setHTML($('podium'), podiumHTML(list, [72, 100, 62]));
+  musicIntensity(list);
+}
+function musicIntensity(list) {
   // intensidad de la música: sube el tempo cuando la carrera está cerrada o alguien está por terminar
   const L = list[0], S = list[1];
   let mul = 1;
