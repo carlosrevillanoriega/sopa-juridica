@@ -3,11 +3,15 @@ const SJ = (() => {
   const BROKERS = {
     emqx: 'wss://broker.emqx.io:8084/mqtt',
     hivemq: 'wss://broker.hivemq.com:8884/mqtt',
-    local: 'ws://localhost:8888'
+    local: 'ws://localhost:8888',
+    local2: 'ws://localhost:8889'
   };
+  const SETS = { locals: ['local', 'local2'] };
   const params = new URLSearchParams(location.search);
   const SALA = (params.get('sala') || 'clase').replace(/[^a-z0-9_-]/gi, '').toLowerCase() || 'clase';
-  const BROKER = BROKERS[params.get('b')] || BROKERS.emqx;
+  const bp = params.get('b');
+  // por defecto se conecta a DOS servidores públicos a la vez: si uno falla, el otro sigue
+  const BROKER_URLS = (SETS[bp] || (BROKERS[bp] ? [bp] : ['emqx', 'hivemq'])).map(k => BROKERS[k]);
   const BASE = 'sopajuridica-scg/v1/' + SALA;
 
   const DEFAULT_WORDS = ['DERECHO', 'JUEZ', 'LEY', 'AMPARO', 'CONTRATO', 'DEMANDA', 'TESTIGO', 'SENTENCIA', 'NOTARIO', 'DELITO'];
@@ -318,19 +322,44 @@ const SJ = (() => {
 
   /* ---------- tiempo real (MQTT) ---------- */
   function connect(onMsg, onStatus) {
-    const id = 'sj_' + Math.random().toString(16).slice(2, 10);
-    const client = mqtt.connect(BROKER, { clientId: id, clean: true, keepalive: 30, reconnectPeriod: 2000, connectTimeout: 8000 });
-    client.on('connect', () => onStatus && onStatus('online'));
-    client.on('reconnect', () => onStatus && onStatus('reconnect'));
-    client.on('offline', () => onStatus && onStatus('offline'));
-    client.on('error', () => onStatus && onStatus('error'));
-    client.on('message', (topic, payload, packet) => {
-      let data = null;
-      const s = payload.toString();
-      if (s) { try { data = JSON.parse(s); } catch (e) { return; } }
-      onMsg(topic.slice(BASE.length + 1), data, !!(packet && packet.retain));
+    const lastTs = {}, deleted = {}, subs = new Map();
+    const clients = BROKER_URLS.map(url => mqtt.connect(url, {
+      clientId: 'sj_' + Math.random().toString(16).slice(2, 10), clean: true, keepalive: 30,
+      reconnectPeriod: 2000, connectTimeout: 10000, resubscribe: true
+    }));
+    const status = () => {
+      const s = clients.some(c => c.connected) ? 'online' : clients.some(c => c.reconnecting) ? 'reconnect' : 'offline';
+      onStatus && onStatus(s);
+    };
+    const handlers = [];
+    clients.forEach(c => {
+      c.on('connect', () => { status(); subs.forEach((o, t) => c.subscribe(JSON.parse(t), o)); handlers.forEach(h => h()); });
+      c.on('reconnect', status); c.on('offline', status); c.on('close', status);
+      c.on('error', () => {});
+      c.on('message', (topic, payload, packet) => {
+        let data = null;
+        const str = payload.toString();
+        if (str) { try { data = JSON.parse(str); } catch (e) { return; } }
+        // los mensajes llegan duplicados (2 servidores): se ignoran los repetidos o más viejos
+        const prev = lastTs[topic];
+        if (data) {
+          const ts = data.ts || 0;
+          if (prev !== undefined && ts <= prev) return;
+          lastTs[topic] = ts; delete deleted[topic];
+        } else {
+          if (deleted[topic]) return;
+          deleted[topic] = true;
+        }
+        onMsg(topic.slice(BASE.length + 1), data, !!(packet && packet.retain));
+      });
     });
-    return client;
+    return {
+      clients,
+      get connected() { return clients.some(c => c.connected); },
+      publish(topic, msg, opts) { clients.forEach(c => c.publish(topic, msg, opts)); },
+      subscribe(topics, opts) { const k = JSON.stringify(topics); if (subs.has(k)) return; subs.set(k, opts); clients.forEach(c => { if (c.connected) c.subscribe(topics, opts); }); },
+      on(ev, fn) { if (ev === 'connect') handlers.push(fn); }
+    };
   }
 
   function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
